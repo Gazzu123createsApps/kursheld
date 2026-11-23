@@ -1,0 +1,19 @@
+{
+  "name": "Kursheld – Börsen-Simulator",
+  "short_name": "Kursheld",
+  "description": "Börsen-Simulator mit Spielgeld: Aktien, ETFs, Tagesgeld, Vokabeltraining und Rangliste.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#070b18",
+  "theme_color": "#070b18",
+  "lang": "de",
+  "categories": ["education", "finance", "games"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
