@@ -1,7 +1,7 @@
 // Kursheld – Service Worker: macht die App installierbar und offline startbar.
-const CACHE = 'kursheld-v2';
+const CACHE = 'kursheld-v1';
 const FILES = ['./', './index.html', './manifest.webmanifest', './firebase-config.js',
-  './icon-192.png', './icon-512.png', './favicon.png'];
+  './icons/icon-192.png', './icons/icon-512.png', './icons/favicon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
