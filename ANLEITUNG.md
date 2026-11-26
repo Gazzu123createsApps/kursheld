@@ -6,6 +6,7 @@ Kursheld ist ein Börsen-Simulator mit Spielgeld. Er läuft im Browser und läss
 - 1 Spieltag = 5 echte Minuten, 1 Spieljahr = 360 Spieltage (≈ 30 Stunden)
 - 29 ausgedachte Anlagen: ETFs, Aktien, Anleihen, Rohstoffe (Gold, Öl), Krypto, dazu Tagesgeld
 - Kurs-Wecker: Benachrichtigung, wenn ein Kurs einen Wert über- oder unterschreitet
+- Limit-Orders: automatisch kaufen oder verkaufen, wenn ein Kurs deinen Wert erreicht
 - Vokabeln abfotografieren und abfragen lassen: 20 € pro richtiger Antwort, höchstens 2.000 € pro Kalendertag
 - Rangliste der 100 reichsten Spieler, dazu Computer-Gegner mit festen Strategien
 
@@ -82,6 +83,21 @@ Auf der Seite jeder Anlage (und unter **Depot → Kurs-Wecker**) stellst du ein,
 - Es klingelt, solange Kursheld offen ist (auch minimiert oder im Hintergrund).
 - Ist die App ganz geschlossen, kann sie nicht klingeln – dafür bräuchte man einen eigenen Server. Beim nächsten Öffnen wird nachgeprüft, ob der Wert inzwischen erreicht wurde, und die App zeigt, *wann* das passiert ist (bis zu 48 Stunden zurück).
 - Wecker werden im Spielstand gespeichert (bei Online-Konten also auch auf anderen Geräten).
+
+## Limit-Orders
+
+Auf der Seite jeder Anlage gibt es die Karte **Limit-Order**. Es gibt drei Arten:
+
+- **📥 Günstig kaufen:** Kursheld kauft für deinen Betrag, sobald der Kurs auf deinen Wert fällt (oder darunter). Der Wert muss unter dem aktuellen Kurs liegen.
+- **💰 Gewinn mitnehmen:** Kursheld verkauft, sobald der Kurs auf deinen Wert steigt (oder darüber). Dafür musst du die Anlage im Depot haben.
+- **🛡️ Verlust begrenzen (Stop-Loss):** Kursheld verkauft, sobald der Kurs auf deinen Wert fällt (oder darunter).
+
+Beim Verkaufen kannst du einen Betrag eingeben oder das Feld leer lassen, dann wird alles verkauft. Orders bleiben gültig, bis sie ausgeführt oder gelöscht werden (höchstens 30 offene). Jede Ausführung kostet wie sonst 1 € Gebühr.
+
+- Bargeld wird **nicht reserviert**. Fehlt es im Moment der Ausführung, wird die Order mit einer Meldung abgebrochen.
+- Wird eine Verkaufs-Order ausgeführt und das Depot ist danach leer, werden die anderen Verkaufs-Orders derselben Anlage automatisch gestrichen. So kannst du „Gewinn mitnehmen" und „Verlust begrenzen" gleichzeitig stellen.
+- Auch hier gilt: Ist die App geschlossen, wird nichts ausgeführt. Beim nächsten Öffnen prüft Kursheld bis zu 5 Tage zurück und führt die Order zu dem Kurs und der Uhrzeit aus, an der der Wert erreicht wurde.
+- Bei Online-Konten Kursheld nur auf **einem Gerät gleichzeitig** offen haben, sonst können sich Stände gegenseitig überschreiben.
 
 ## Updates ohne Neuinstallation
 

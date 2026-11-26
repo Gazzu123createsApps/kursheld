@@ -381,11 +381,11 @@ const S={mode:'local',uid:null,name:'',st:null,view:'depot',arg:null,ui:{range:'
 let ST=null; // aktueller Spielstand
 function newState(name){
   const t=now();
-  return{v:1,name,created:t,cash:START,holdings:{},sav:{bal:0,day:dayOf(t)},tx:[{t,type:'start',amount:START}],vocab:{lists:[]},earn:{date:'',sum:0,words:{}},alerts:[]};
+  return{v:1,name,created:t,cash:START,holdings:{},sav:{bal:0,day:dayOf(t)},tx:[{t,type:'start',amount:START}],vocab:{lists:[]},earn:{date:'',sum:0,words:{}},alerts:[],orders:[]};
 }
 function fixState(st){
   st.holdings=st.holdings||{};st.sav=st.sav||{bal:0,day:dayOf(now())};st.tx=st.tx||[];st.vocab=st.vocab||{lists:[]};st.vocab.lists=st.vocab.lists||[];
-  st.earn=st.earn||{date:'',sum:0,words:{}};st.earn.words=st.earn.words||{};st.alerts=Array.isArray(st.alerts)?st.alerts:[];return st;
+  st.earn=st.earn||{date:'',sum:0,words:{}};st.earn.words=st.earn.words||{};st.alerts=Array.isArray(st.alerts)?st.alerts:[];st.orders=Array.isArray(st.orders)?st.orders:[];return st;
 }
 const LP='kursheld.profiles',LC='kursheld.current';
 function localProfiles(){return store.get(LP)||{};}
@@ -547,8 +547,8 @@ function updateLive(force){
 }
 let liveN=0;
 setInterval(()=>{
-  if(!ST)return;liveN++;updateLive(false);checkAlerts();
-  if(S.mode==='local'&&liveN%30===0&&ST.alerts&&ST.alerts.some(a=>!a.fired))save();
+  if(!ST)return;liveN++;updateLive(false);checkAlerts();checkOrders();
+  if(S.mode==='local'&&liveN%30===0&&((ST.alerts&&ST.alerts.some(a=>!a.fired))||(ST.orders&&ST.orders.some(o=>!o.done))))save();
   if(S.view==='aktie')drawAssetChart();
   if(S.view==='depot'&&liveN%5===0)drawWorthChart();
   if(S.view==='rangliste'&&liveN%5===0&&!S.rank.loading)renderRankList();
@@ -642,7 +642,7 @@ function viewDepot(){
     '<div class="card"><div class="row"><div class="av" style="background:rgba(251,191,36,.15)">🏦</div><div class="sp"><div class="nm">Tagesgeld</div><div class="sub">'+fmtN(SAV_RATE*100,1)+' % Zinsen pro Spieljahr, jeden Tag gutgeschrieben</div></div></div><div class="row mt"><div class="sp"><div class="sub">Guthaben</div><div class="num" style="font-weight:800;font-size:20px" data-l="sav"></div></div><button class="btn sm" data-act="sav">Ein-/Auszahlen</button></div></div>'+
     '<div class="card"><div class="row"><div class="av" style="background:rgba(251,191,36,.15)">📚</div><div class="sp"><div class="nm">Mit Vokabeln verdienen</div><div class="sub">20 € pro richtiger Antwort, bis 2.000 € pro Tag</div></div></div><div class="mt prog"><i data-l="earnbar"></i></div><div class="row" style="margin-top:6px"><span class="sub sp" data-l="earn"></span><button class="btn pri sm" data-go="vokabeln">Üben</button></div></div>'+
     '<div class="card"><div class="row"><div class="sp"><div class="sub">Bargeld</div><div class="num" style="font-weight:800;font-size:20px" data-l="cash"></div></div><div class="r"><div class="sub">Nächster Spieltag in</div><div class="num" style="font-weight:800;font-size:20px" data-l="next"></div></div></div></div>'+
-    '<div class="card"><div class="row"><div class="av" style="background:rgba(167,139,250,.15)">🔔</div><div class="sp"><div class="nm">Kurs-Wecker</div><div class="sub">'+(ST.alerts.filter(a=>!a.fired).length?ST.alerts.filter(a=>!a.fired).length+' aktiv':'Lass dich benachrichtigen, wenn ein Kurs einen Wert erreicht')+'</div></div><button class="btn sm" data-go="wecker">'+(ST.alerts.length?'Öffnen':'Einrichten')+'</button></div></div>'+
+    '<div class="card"><div class="row"><div class="av" style="background:rgba(167,139,250,.15)">🔔</div><div class="sp"><div class="nm">Wecker &amp; Orders</div><div class="sub">'+((ST.alerts.some(a=>!a.fired)||ST.orders.some(o=>!o.done))?ST.alerts.filter(a=>!a.fired).length+' Wecker · '+ST.orders.filter(o=>!o.done).length+' Orders aktiv':'Benachrichtigen lassen oder automatisch kaufen und verkaufen')+'</div></div><button class="btn sm" data-go="wecker">'+((ST.alerts.length||ST.orders.length)?'Öffnen':'Einrichten')+'</button></div></div>'+
     '<div class="card"><h3>💡 Tipp des Tages</h3><div>'+esc(tip)+'</div></div>'+
    '</div></div>';
 }
@@ -656,9 +656,9 @@ function drawWorthChart(){
 /* ================================================================ Ansicht: Markt */
 function viewMarkt(){
   const types=['Alle','Im Depot','Wecker','ETF','Aktie','Krypto','Rohstoff','Anleihe'];
-  const rows=ASSETS.filter(a=>S.ui.filter==='Alle'||(S.ui.filter==='Im Depot'?!!ST.holdings[a.sym]:S.ui.filter==='Wecker'?alertsFor(a.sym).some(x=>!x.fired):a.type===S.ui.filter)).map(a=>{const i=IDX[a.sym],own=ST.holdings[a.sym],nal=alertsFor(a.sym).filter(x=>!x.fired).length;
-    return'<div class="li" data-asset="'+a.sym+'"><div class="av" style="background:'+hexA(a.color,.16)+'">'+a.icon+'</div><div class="sp"><div class="nm">'+esc(a.name)+(own?' <span class="tag you">im Depot</span>':'')+(nal?' <span title="Wecker aktiv">🔔</span>':'')+'</div><div class="sub">'+a.type+' · Risiko '+riskHtml(a.risk)+'</div></div>'+spark(i)+'<div class="r" style="min-width:96px"><div class="num" style="font-weight:700" data-l="price:'+a.sym+'"></div><div class="num" data-l="chg:'+a.sym+'"></div></div></div>';}).join('');
-  return'<div class="pageh"><h2>Markt</h2><span class="sp"></span><button class="btn sm" data-go="wecker">🔔 Wecker</button></div>'+
+  const rows=ASSETS.filter(a=>S.ui.filter==='Alle'||(S.ui.filter==='Im Depot'?!!ST.holdings[a.sym]:S.ui.filter==='Wecker'?(alertsFor(a.sym).some(x=>!x.fired)||ordersFor(a.sym).some(x=>!x.done)):a.type===S.ui.filter)).map(a=>{const i=IDX[a.sym],own=ST.holdings[a.sym],nal=alertsFor(a.sym).filter(x=>!x.fired).length+ordersFor(a.sym).filter(x=>!x.done).length;
+    return'<div class="li" data-asset="'+a.sym+'"><div class="av" style="background:'+hexA(a.color,.16)+'">'+a.icon+'</div><div class="sp"><div class="nm">'+esc(a.name)+(own?' <span class="tag you">im Depot</span>':'')+(nal?' <span title="Wecker oder Order aktiv">🔔</span>':'')+'</div><div class="sub">'+a.type+' · Risiko '+riskHtml(a.risk)+'</div></div>'+spark(i)+'<div class="r" style="min-width:96px"><div class="num" style="font-weight:700" data-l="price:'+a.sym+'"></div><div class="num" data-l="chg:'+a.sym+'"></div></div></div>';}).join('');
+  return'<div class="pageh"><h2>Markt</h2><span class="sp"></span><button class="btn sm" data-go="wecker">🔔 Wecker &amp; Orders</button></div>'+
    '<div class="seg" style="margin-bottom:12px;overflow:auto">'+types.map(t=>'<button class="'+(S.ui.filter===t?'on':'')+'" data-filter="'+t+'">'+t+'</button>').join('')+'</div>'+
    '<div class="card"><div class="list">'+(rows||'<div class="empty"><div class="e">🔍</div>Hier ist gerade nichts.</div>')+'</div></div>'+
    '<div class="card mt"><h3>So funktioniert die Börse hier</h3><div class="sub" style="font-size:14px">Ein Spieltag dauert 5 echte Minuten, ein Spieljahr 360 Spieltage (30 Stunden). Die Kurse sind für alle Spieler gleich und laufen weiter, auch wenn die App geschlossen ist. Jede Order kostet '+fmtE(FEE,0)+' Gebühr. Alle Firmen sind ausgedacht, alles ist Spielgeld.</div></div>';
@@ -685,6 +685,7 @@ function viewAktie(){
     '<div class="sub" id="amtHint" style="min-height:20px;margin-bottom:12px">Verfügbar: '+(buy?fmtE(ST.cash)+' Bargeld':fmtE(own?own.qty*priceAt(i,t):0))+'</div>'+
     '<button class="btn full '+(buy?'buy':'sell')+'" data-act="'+(buy?'buy':'sell')+'">'+(buy?'Jetzt kaufen':'Jetzt verkaufen')+'</button>'+
     '<div class="hint mt">Gebühr pro Order: '+fmtE(FEE,0)+'. Du kannst auch Bruchteile kaufen, z. B. 0,25 Stück.</div></div>'+
+    '<div class="card"><h3>📋 Limit-Order</h3><div class="sub" style="margin-bottom:12px">Kauf oder Verkauf, der von selbst passiert, sobald der Kurs deinen Wert erreicht.</div>'+(ordersFor(s).length?'<div class="list" style="margin-bottom:12px">'+ordersFor(s).map(x=>orderRow(x,false)).join('')+'</div>':'')+orderForm(s)+'</div>'+
     '<div class="card"><h3>🔔 Kurs-Wecker</h3>'+(alertsFor(s).length?'<div class="list" style="margin-bottom:12px">'+alertsFor(s).map(x=>alertRow(x,false)).join('')+'</div>':'')+alertForm(s)+'<div class="hint mt">'+(notifState()==='granted'?'Benachrichtigungen sind an.':'Beim ersten Wecker fragt dein Gerät, ob Kursheld Benachrichtigungen schicken darf.')+'</div></div>'+
    '</div></div>';
 }
@@ -997,12 +998,102 @@ function notifCard(){
 }
 function viewWecker(){
   const act=ST.alerts.filter(a=>!a.fired),done=ST.alerts.filter(a=>a.fired);
-  return'<div class="pageh"><button class="back" data-go="depot">'+IC.back+'</button><h2>Kurs-Wecker</h2></div><div class="grid g2"><div class="grid" style="align-content:start">'+
+  return'<div class="pageh"><button class="back" data-go="depot">'+IC.back+'</button><h2>Wecker &amp; Orders</h2></div><div class="grid g2"><div class="grid" style="align-content:start">'+
    '<div class="card"><h3>Neuer Wecker</h3>'+alertForm(null)+'</div>'+notifCard()+
    '</div><div class="grid" style="align-content:start">'+
-   '<div class="card"><h3>Aktiv ('+act.length+')</h3>'+(act.length?'<div class="list">'+act.map(a=>alertRow(a,true)).join('')+'</div>':'<div class="empty"><div class="e">⏰</div>Noch kein Wecker gestellt.</div>')+'</div>'+
+   '<div class="card"><h3>Aktive Wecker ('+act.length+')</h3>'+(act.length?'<div class="list">'+act.map(a=>alertRow(a,true)).join('')+'</div>':'<div class="empty"><div class="e">⏰</div>Noch kein Wecker gestellt.</div>')+'</div>'+
    (done.length?'<div class="card"><h3>Ausgelöst</h3><div class="list">'+done.map(a=>alertRow(a,true)).join('')+'</div></div>':'')+
+   '<div class="card"><h3>📋 Limit-Orders ('+ST.orders.filter(o=>!o.done).length+' offen)</h3>'+(ST.orders.length?'<div class="list">'+ST.orders.slice().sort((x,y)=>(!!x.done)-(!!y.done)||y.created-x.created).map(o=>orderRow(o,true)).join('')+'</div>':'<div class="empty"><div class="e">📋</div>Noch keine Order.</div>')+'<div class="hint mt">Neue Orders legst du auf der Seite der jeweiligen Anlage an (Markt → Anlage antippen).</div></div>'+
    '</div></div>';
+}
+
+
+/* ================================================================ Limit-Orders */
+const OKIND={
+  buy: {ic:'📥',l:'Günstig kaufen',  side:'buy', below:true, help:'Kursheld kauft für deinen Betrag, sobald der Kurs auf den Wert fällt oder darunter.'},
+  take:{ic:'💰',l:'Gewinn mitnehmen',side:'sell',below:false,help:'Kursheld verkauft, sobald der Kurs auf den Wert steigt oder darüber – so sicherst du dir Gewinn.'},
+  stop:{ic:'🛡️',l:'Verlust begrenzen',side:'sell',below:true, help:'Kursheld verkauft, sobald der Kurs auf den Wert fällt oder darunter – so rutscht dein Verlust nicht weiter ab.'}
+};
+const MAX_ORDERS=30,ORDER_SCAN=5*86400e3;
+const ordersFor=sym=>(ST&&ST.orders||[]).filter(o=>o.sym===sym);
+function execOrder(o,hit){
+  const a=ASSETS[IDX[o.sym]],K=OKIND[o.kind],p=hit.p;let msg,ok=false,qty=0,amt=0;
+  if(K.side==='buy'){
+    const v=Math.round(o.amount*100)/100;
+    if(v+FEE>ST.cash+1e-9)msg='Zu wenig Bargeld (du hast '+fmtE(ST.cash)+', gebraucht: '+fmtE(v+FEE)+')';
+    else{qty=v/p;ST.cash-=v+FEE;const h=ST.holdings[o.sym]||(ST.holdings[o.sym]={qty:0,cost:0});h.qty+=qty;h.cost+=v;
+      ST.tx.push({t:hit.t,type:'buy',sym:o.sym,qty,price:p,amount:v,auto:1});ok=true;amt=v;
+      msg='Gekauft: '+fmtQ(qty)+' Stück für '+fmtE(v)+' (Kurs '+fmtPr(p)+')';}
+  }else{
+    const h=ST.holdings[o.sym];
+    if(!h)msg='Nichts im Depot zu verkaufen';
+    else{let q=o.amount?Math.min(h.qty,o.amount/p):h.qty;if(q>=h.qty*0.9999)q=h.qty;const m=q*p;
+      if(m<FEE)msg='Der Betrag ist kleiner als die Gebühr';
+      else{h.cost*=1-q/h.qty;h.qty-=q;if(h.qty<1e-9)delete ST.holdings[o.sym];ST.cash+=m-FEE;
+        ST.tx.push({t:hit.t,type:'sell',sym:o.sym,qty:q,price:p,amount:m,auto:1});ok=true;qty=q;amt=m;
+        msg='Verkauft: '+fmtQ(q)+' Stück für '+fmtE(m-FEE)+' nach Gebühr (Kurs '+fmtPr(p)+')';
+        if(!ST.holdings[o.sym])ST.orders.forEach(x=>{if(!x.done&&x!==o&&x.sym===o.sym&&OKIND[x.kind].side==='sell')x.done={t:hit.t,ok:false,msg:'Nichts mehr im Depot – Order gestrichen'};});}}
+  }
+  o.done={t:hit.t,p,qty,amt,ok,msg};
+  const ago=now()-hit.t,title=(ok?'✅ Order ausgeführt: ':'⚠️ Order nicht ausgeführt: ')+a.name,body=msg+(ago>90e3?' – vor '+agoStr(ago):'');
+  toast(title+' – '+body,ok?'ok':'err',9000);if(ok)beep();showNotif(title,body,o.sym);
+}
+function checkOrders(){
+  if(!ST||!ST.orders||!ST.orders.length)return;
+  const pend=ST.orders.filter(o=>!o.done);if(!pend.length)return;
+  const t=now(),step=DAY_MS/TICKS,hits=[];
+  for(const o of pend){
+    const i=IDX[o.sym];if(i==null)continue;const below=OKIND[o.kind].below,ok=p=>below?p<=o.price:p>=o.price;
+    const from=Math.max(o.chk||o.created||t,t-ORDER_SCAN);let hit=null;
+    for(let tt=EPOCH+(Math.floor((from-EPOCH)/step)+1)*step;tt<=t;tt+=step){const p=priceAt(i,tt);if(ok(p)){hit={t:tt,p};break;}}
+    if(!hit){const p=priceAt(i,t);if(ok(p))hit={t,p};}
+    o.chk=t;if(hit)hits.push({o,hit});
+  }
+  if(!hits.length)return;
+  hits.sort((x,y)=>x.hit.t-y.hit.t);
+  for(const h of hits){if(!h.o.done)execOrder(h.o,h.hit);}
+  save();
+  if(['wecker','aktie','markt','depot'].includes(S.view)&&!document.activeElement.matches('input,textarea'))renderView();
+}
+function addOrder(sym,kind,limit,amount){
+  const K=OKIND[kind];if(!K||IDX[sym]==null)return toast('Bitte eine Art von Order wählen.','err');
+  if(!isFinite(limit)||limit<=0)return toast('Bitte einen Kurs-Wert eingeben, z. B. 50,00','err');
+  limit=Math.round(limit*10000)/10000;const cur=price(sym),own=ST.holdings[sym];
+  if(K.side==='buy'){
+    if(!(amount>=1))return toast('Bitte einen Betrag von mindestens 1 € eingeben.','err');
+    if(amount+FEE>ST.cash+1e-9)return toast('Nicht genug Bargeld (inkl. 1 € Gebühr). Du hast '+fmtE(ST.cash)+'.','err');
+    if(limit>=cur)return toast('Der Kurs liegt schon bei '+fmtPr(cur)+'. Für „Günstig kaufen“ muss dein Wert darunter liegen – sonst kaufe direkt im Markt.','err',5000);
+  }else{
+    if(!own)return toast('Dafür musst du diese Anlage im Depot haben.','err');
+    if(kind==='take'&&limit<=cur)return toast('Der Kurs liegt schon bei '+fmtPr(cur)+'. Für „Gewinn mitnehmen“ muss dein Wert darüber liegen.','err',5000);
+    if(kind==='stop'&&limit>=cur)return toast('Der Kurs liegt schon bei '+fmtPr(cur)+'. Für „Verlust begrenzen“ muss dein Wert darunter liegen.','err',5000);
+    if(amount!=null&&!(amount>0))amount=null;
+  }
+  if(ST.orders.filter(o=>!o.done).length>=MAX_ORDERS)return toast('Du kannst höchstens '+MAX_ORDERS+' Orders gleichzeitig haben.','err');
+  ST.orders.push({id:uid(),sym,kind,price:limit,amount:K.side==='buy'?Math.round(amount*100)/100:(amount?Math.round(amount*100)/100:null),created:now(),chk:now(),done:null});
+  save();toast('📋 Order gespeichert: '+K.l+' bei '+fmtPr(limit),'ok');
+  if(notifState()==='default')askNotif();
+  renderView();
+}
+function orderForm(sym){
+  const k=S.ui.okind||'buy',K=OKIND[k];
+  return'<input type="hidden" id="ofSym" value="'+sym+'">'+
+   '<div class="seg" id="ofKind" style="flex-direction:column">'+Object.keys(OKIND).map(x=>'<button data-okind="'+x+'" class="'+(k===x?'on':'')+'" style="text-align:left">'+OKIND[x].ic+' '+OKIND[x].l+'</button>').join('')+'</div>'+
+   '<div class="hint" id="ofHelp" style="margin:10px 0 12px">'+K.help+'</div>'+
+   '<div class="field"><label>Kurs-Wert</label><input class="inp lg num" id="ofPrice" inputmode="decimal" placeholder="z. B. 50,00 €" autocomplete="off"></div>'+
+   '<div class="qk">'+[[-10,'−10 %'],[-5,'−5 %'],[5,'+5 %'],[10,'+10 %'],[25,'+25 %']].map(([v,l])=>'<button class="btn sm" data-opct="'+v+'">'+l+'</button>').join('')+'</div>'+
+   '<div class="field" style="margin-top:12px"><label id="ofAmtL">'+(K.side==='buy'?'Wie viel möchtest du kaufen? (€)':'Wie viel verkaufen? (€, leer = alles)')+'</label><input class="inp num" id="ofAmt" inputmode="decimal" placeholder="'+(K.side==='buy'?'z. B. 500':'leer = alles verkaufen')+'" autocomplete="off"></div>'+
+   '<button class="btn pri full" data-act="addorder">📋 Order speichern</button>'+
+   '<div class="hint mt">Die Order bleibt gültig, bis sie ausgeführt oder gelöscht wird. Gebühr: '+fmtE(FEE,0)+' bei Ausführung. Gekauft oder verkauft wird zum Kurs, der in dem Moment gilt.</div>';
+}
+function orderRow(o,withAsset){
+  const a=ASSETS[IDX[o.sym]];if(!a)return'';const K=OKIND[o.kind],cur=price(o.sym);
+  const what=K.side==='buy'?'Kaufen für '+fmtE(o.amount):(o.amount?'Verkaufen für '+fmtE(o.amount):'Alles verkaufen');
+  const cond=(K.below?'bei Kurs ≤ ':'bei Kurs ≥ ')+fmtPr(o.price);
+  const st=o.done?(o.done.ok?'<span class="tag" style="background:rgba(34,197,94,.16);color:#86efac">✅ ausgeführt vor '+agoStr(now()-o.done.t)+'</span><div class="sub">'+esc(o.done.msg)+'</div>':'<span class="tag" style="background:rgba(244,63,94,.16);color:#fda4af">⚠️ nicht ausgeführt</span><div class="sub">'+esc(o.done.msg)+'</div>'):
+    '<span class="sub num">Jetzt '+fmtPr(cur)+' · noch '+fmtN(Math.abs(o.price/cur-1)*100,1)+' % '+(K.below?'bis unten':'bis oben')+'</span>';
+  return'<div class="li" style="cursor:default"><div class="av" style="background:'+hexA(a.color,.16)+'">'+a.icon+'</div><div class="sp" style="min-width:0"><div class="nm" style="white-space:normal">'+(withAsset?esc(a.name)+'<br>':'')+K.ic+' '+what+'<br>'+cond+'</div><div style="margin-top:3px">'+st+'</div></div>'+
+   '<button class="btn sm" data-act="delorder" data-id="'+o.id+'" title="Löschen">✕</button></div>';
 }
 
 /* ================================================================ Profil */
@@ -1024,7 +1115,7 @@ function viewProfil(){
    '<details class="acc"><summary>💶 Gebühren & Zinsen</summary><p>Jeder Kauf und Verkauf kostet 1 € Gebühr. Das Tagesgeld bringt '+fmtN(SAV_RATE*100,1)+' % Zinsen pro Spieljahr und kostet nichts.</p></details>'+
    '<details class="acc"><summary>📚 Geld mit Vokabeln</summary><p>Jede richtige Antwort bringt 20 €, höchstens 2.000 € pro echtem Kalendertag. Jede Vokabel zahlt höchstens 3× pro Tag.</p></details>'+
    '<details class="acc"><summary>⚠️ Wichtig</summary><p>Kursheld ist ein Lernspiel mit Spielgeld. Es gibt keine echten Käufe und keine Anlageempfehlungen.</p></details></div>'+
-   '<div class="card"><h3>Kurs-Wecker</h3><div class="row"><div class="sp sub">'+ST.alerts.filter(a=>!a.fired).length+' aktiv · Benachrichtigungen: '+({granted:'an',denied:'blockiert',default:'noch nicht erlaubt',none:'nicht möglich'}[notifState()])+'</div><button class="btn sm" data-go="wecker">Öffnen</button></div></div>'+
+   '<div class="card"><h3>Wecker &amp; Orders</h3><div class="row"><div class="sp sub">'+ST.alerts.filter(a=>!a.fired).length+' Wecker, '+ST.orders.filter(o=>!o.done).length+' Orders aktiv · Benachrichtigungen: '+({granted:'an',denied:'blockiert',default:'noch nicht erlaubt',none:'nicht möglich'}[notifState()])+'</div><button class="btn sm" data-go="wecker">Öffnen</button></div></div>'+
    '<div class="card"><h3>Konto</h3><button class="btn full" data-act="logout">'+(S.mode==='online'?'Abmelden':'Konto wechseln')+'</button>'+(S.mode==='local'?'<button class="btn sell full mt" data-act="reset">Spielstand löschen</button>':'')+'</div></div></div>';
 }
 function installHelp(){
@@ -1089,6 +1180,8 @@ document.addEventListener('click',e=>{
     i.value=fmtN(x,2);tradeHint();return;}
   const ad=e.target.closest('[data-adir]');if(ad){S.ui.adir=ad.dataset.adir;$$('[data-adir]').forEach(b=>b.classList.toggle('on',b===ad));return;}
   const ap=e.target.closest('[data-apct]');if(ap){const symEl=$('#afSym');if(!symEl)return;const pc=+ap.dataset.apct,cur=price(symEl.value);S.ui.adir=pc>0?'above':'below';$$('[data-adir]').forEach(b=>b.classList.toggle('on',b.dataset.adir===S.ui.adir));const v=cur*(1+pc/100);$('#afPrice').value=fmtN(v,v>=1?2:4);return;}
+  const ok_=e.target.closest('[data-okind]');if(ok_){const k=ok_.dataset.okind,K=OKIND[k];S.ui.okind=k;$$('[data-okind]').forEach(b=>b.classList.toggle('on',b===ok_));$('#ofHelp').textContent=K.help;$('#ofAmtL').textContent=K.side==='buy'?'Wie viel möchtest du kaufen? (€)':'Wie viel verkaufen? (€, leer = alles)';$('#ofAmt').placeholder=K.side==='buy'?'z. B. 500':'leer = alles verkaufen';return;}
+  const op=e.target.closest('[data-opct]');if(op){const sy=$('#ofSym');if(!sy)return;const cur=price(sy.value),v=cur*(1+(+op.dataset.opct)/100);$('#ofPrice').value=fmtN(v,v>=1?2:4);return;}
   const qz=e.target.closest('[data-quiz]');if(qz)return startQuiz(qz.dataset.quiz);
   const qd=e.target.closest('[data-qdir]');if(qd&&Q){S.ui.qdir=Q.dir=qd.dataset.qdir;if(!Q.answered){nextQ();}return renderView();}
   const ed=e.target.closest('[data-edit]');if(ed){const l=ST.vocab.lists.find(x=>x.id===ed.dataset.edit);if(l)openEditor({id:l.id,name:l.name,rows:l.items.map(x=>Object.assign({},x)),img:null});return;}
@@ -1117,6 +1210,8 @@ document.addEventListener('click',e=>{
     case'addalert':{const el=$('#afSym');if(el)S.ui.asym=el.value;return addAlert(el&&el.value,S.ui.adir||'above',parseAmt($('#afPrice').value));}
     case'delalert':ST.alerts=ST.alerts.filter(x=>x.id!==a.dataset.id);save();return renderView();
     case'rearm':{const al=ST.alerts.find(x=>x.id===a.dataset.id);if(!al)return;const cur=price(al.sym);if(al.dir==='above'?cur>=al.price:cur<=al.price)return toast('Der Kurs liegt noch jenseits des Werts ('+fmtPr(cur)+'). Lösche den Wecker und stelle einen neuen Wert ein.','err',5000);al.fired=null;al.chk=now();save();toast('Wecker wieder scharf 🔔','ok');return renderView();}
+    case'addorder':{const amtRaw=$('#ofAmt').value.trim();return addOrder($('#ofSym').value,S.ui.okind||'buy',parseAmt($('#ofPrice').value),amtRaw?parseAmt(amtRaw):null);}
+    case'delorder':ST.orders=ST.orders.filter(x=>x.id!==a.dataset.id);save();return renderView();
     case'notifperm':return askNotif();
     case'checkupdate':return checkUpdate(true);
     case'doupdate':return doUpdate();
@@ -1141,11 +1236,11 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('change',e=>{if(e.target.id==='photo'||e.target.id==='photo2'){const f=e.target.files&&e.target.files[0];e.target.value='';handlePhoto(f);}});
 window.addEventListener('hashchange',()=>{if(!ST)return;const prev=S.view+':'+S.arg;routeFromHash();if(S.view+':'+S.arg!==prev){setNav();renderView();}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&S.mode==='online'&&ST)saveRemote();if(!document.hidden){document.title='Kursheld – Börsen-Simulator';if(ST){checkAlerts();}checkUpdate(false);}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&S.mode==='online'&&ST)saveRemote();if(!document.hidden){document.title='Kursheld – Börsen-Simulator';if(ST){checkAlerts();checkOrders();}checkUpdate(false);}});
 
 
 /* ================================================================ Updates (ohne Neuinstallation) */
-const VERSION='2026-11-24.1';
+const VERSION='2026-11-26.1';
 let updAsked=false;
 async function remoteVersion(){
   try{const r=await fetch('index.html',{cache:'no-store'});if(!r.ok)return null;const tx=await r.text();const m=tx.match(/const VERSION='([^']+)'/);return m?m[1]:null;}catch(_){return null;}
