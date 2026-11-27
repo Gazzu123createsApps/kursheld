@@ -168,6 +168,23 @@ details.acc p{margin:8px 0 2px;color:var(--mut);font-size:14px}
 #updbar{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:60;display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:16px;background:rgba(15,23,52,.96);border:1px solid var(--line);box-shadow:0 12px 40px rgba(0,0,0,.5);font-weight:600;font-size:14px;max-width:calc(100vw - 24px)}
 select.inp{appearance:auto}
 @media(min-width:900px){#updbar{bottom:24px}}
+.evpop{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px;background:rgba(3,6,16,.72);backdrop-filter:blur(6px);animation:evin .35s ease}
+.evcard{width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;border-radius:26px;padding:26px 22px 20px;text-align:center;background:linear-gradient(160deg,rgba(30,41,82,.98),rgba(10,15,34,.98));border:1px solid var(--line);box-shadow:0 30px 90px rgba(0,0,0,.6);animation:evpop .5s cubic-bezier(.2,1.4,.4,1)}
+.evpop.bad .evcard{border-color:#f43f5e;box-shadow:0 0 0 1px #f43f5e,0 30px 120px rgba(244,63,94,.45);background:linear-gradient(160deg,rgba(80,14,30,.98),rgba(20,8,16,.98))}
+.evpop.good .evcard{border-color:#22c55e;box-shadow:0 0 0 1px #22c55e,0 30px 120px rgba(34,197,94,.45);background:linear-gradient(160deg,rgba(14,70,40,.98),rgba(8,20,16,.98))}
+.evpop.bad2 .evcard{border-color:rgba(244,63,94,.5)}.evpop.good2 .evcard{border-color:rgba(34,211,238,.5)}
+.evbig{font-size:72px;line-height:1;margin-bottom:6px;animation:evbounce 1.2s ease infinite}
+.evtag{font-size:12px;font-weight:800;letter-spacing:.14em;color:var(--mut);margin-bottom:6px}
+.evpop.bad .evtag{color:#fda4af}.evpop.good .evtag{color:#86efac}
+.evcard h2{font-size:28px;margin:0 0 8px;letter-spacing:-.02em}.evpop.bad h2{color:#fecdd3}.evpop.good h2{color:#bbf7d0}
+.evcard p{margin:0 0 14px;color:#cbd5e1}
+.evlist{text-align:left;display:flex;flex-direction:column;gap:6px}
+.evr{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:14px;background:rgba(148,163,184,.08);border:1px solid var(--line);cursor:pointer}
+.evr:hover{background:rgba(148,163,184,.16)}.evi{font-size:20px}
+.shake .evcard{animation:evpop .5s cubic-bezier(.2,1.4,.4,1),shake .6s .5s}
+@keyframes evin{from{opacity:0}}@keyframes evpop{from{transform:scale(.6);opacity:0}}
+@keyframes evbounce{50%{transform:translateY(-6px) scale(1.06)}}
+@keyframes shake{20%,60%{transform:translateX(-10px) rotate(-1deg)}40%,80%{transform:translateX(10px) rotate(1deg)}}
 </style>
 </head>
 <body>
@@ -222,35 +239,53 @@ const fracOf=t=>(t-EPOCH)/DAY_MS-dayOf(t);
 const dayStart=d=>EPOCH+d*DAY_MS;
 
 const ASSETS=[
- {sym:'WELT',name:'Welt-ETF',type:'ETF',risk:2,mu:0.075,vol:0.16,rho:0.95,beta:1,base:100,color:'#38bdf8',icon:'🌍',desc:'Kauft auf einen Schlag kleine Anteile von über 1.000 Firmen auf der ganzen Welt. Geht eine Firma pleite, merkst du das kaum. Klingt langweilig – genau das ist seine Stärke.'},
- {sym:'EURO',name:'Europa-ETF',type:'ETF',risk:2,mu:0.06,vol:0.17,rho:0.9,beta:1,base:50,color:'#818cf8',icon:'🏰',desc:'Wie der Welt-ETF, aber nur mit großen Firmen aus Europa. Etwas weniger breit gestreut.'},
- {sym:'ANL',name:'Anleihen-Fonds',type:'Anleihe',risk:1,mu:0.03,vol:0.05,rho:0.1,beta:0,base:100,color:'#94a3b8',icon:'🏛️',desc:'Leiht Staaten Geld und bekommt dafür Zinsen. Schwankt wenig, wächst aber auch nur langsam.'},
- {sym:'SCHOKO',name:'Schoko-Fabrik',type:'Aktie',risk:2,mu:0.06,vol:0.2,rho:0.5,beta:0.8,base:75,color:'#d97706',icon:'🍫',desc:'Stellt Schokolade her. Gegessen wird immer – deshalb eine eher ruhige Aktie.'},
- {sym:'MEDI',name:'MediPlus',type:'Aktie',risk:3,mu:0.08,vol:0.26,rho:0.5,beta:0.9,base:130,color:'#f472b6',icon:'💊',desc:'Entwickelt Medikamente. Neue Mittel können den Kurs springen lassen – nach oben oder nach unten.'},
- {sym:'GRUEN',name:'GrünStrom AG',type:'Aktie',risk:3,mu:0.09,vol:0.3,rho:0.5,beta:1.1,base:42,color:'#22c55e',icon:'🌬️',desc:'Betreibt Wind- und Solarparks. Wächst mit der Energiewende, hängt aber stark an den Strompreisen.'},
- {sym:'NOVA',name:'NovaTech',type:'Aktie',risk:4,mu:0.13,vol:0.38,rho:0.55,beta:1.3,base:180,color:'#22d3ee',icon:'🤖',desc:'Software und künstliche Intelligenz. Kann stark wachsen – und genauso stark fallen.'},
- {sym:'PIXEL',name:'Pixel Games',type:'Aktie',risk:4,mu:0.11,vol:0.42,rho:0.45,beta:1.2,base:24,color:'#a78bfa',icon:'🎮',desc:'Macht Videospiele. Ein Hit lässt den Kurs steigen, ein Flop lässt ihn abstürzen.'},
- {sym:'SPACE',name:'SpaceLift',type:'Aktie',risk:5,mu:0.16,vol:0.65,rho:0.4,beta:1.6,base:9,color:'#fb923c',icon:'🚀',desc:'Junges Raumfahrt-Unternehmen. Riesige Chancen, riesiges Risiko: Es kann sich vervielfachen oder fast alles verlieren.'},
- {sym:'BYTE',name:'ByteCoin',type:'Krypto',risk:5,mu:0.12,vol:0.8,rho:0.3,beta:1.8,base:3000,color:'#fbbf24',icon:'🪙',desc:'Eine ausgedachte Kryptowährung. Keine Firma dahinter, nur Angebot und Nachfrage – extrem wilde Schwankungen.'},
- {sym:'TECHE',name:'Tech-ETF',type:'ETF',risk:3,mu:0.10,vol:0.28,rho:0.85,beta:1.2,base:80,color:'#06b6d4',icon:'💻',desc:'Bündelt die größten Technik-Firmen in einem Paket. Mehr Schwung als der Welt-ETF, aber auch größere Ausschläge.'},
- {sym:'SCHWELLE',name:'Schwellenländer-ETF',type:'ETF',risk:3,mu:0.08,vol:0.24,rho:0.75,beta:1.1,base:40,color:'#f59e0b',icon:'🌏',desc:'Firmen aus Ländern, die gerade schnell wachsen. Hohe Chancen, dafür schwankt er stärker.'},
- {sym:'DIVI',name:'Dividenden-ETF',type:'ETF',risk:2,mu:0.055,vol:0.13,rho:0.85,beta:0.8,base:60,color:'#34d399',icon:'💰',desc:'Firmen, die regelmäßig Gewinne an ihre Aktionäre auszahlen. Gilt als solide und ruhig.'},
- {sym:'IMMO',name:'Immobilien-Fonds',type:'ETF',risk:2,mu:0.05,vol:0.14,rho:0.6,beta:0.6,base:70,color:'#fb7185',icon:'🏢',desc:'Besitzt Bürohäuser, Wohnungen und Einkaufszentren. Die Mieten sorgen für stetige Einnahmen.'},
- {sym:'GOLD',name:'Goldbarren',type:'Rohstoff',risk:2,mu:0.035,vol:0.15,rho:0,beta:-0.3,base:1800,color:'#facc15',icon:'🥇',desc:'Gold gilt als sicherer Hafen: Bei einem Börsenbeben steigt es oft, während Aktien fallen.'},
- {sym:'OEL',name:'Rohöl',type:'Rohstoff',risk:4,mu:0.04,vol:0.35,rho:0.3,beta:0.6,base:70,color:'#a8a29e',icon:'🛢️',desc:'Der Ölpreis springt bei Krisen, Kriegen und Wirtschaftsnachrichten wild hin und her.'},
- {sym:'STAAT',name:'Staatsanleihen',type:'Anleihe',risk:1,mu:0.025,vol:0.06,rho:0.1,beta:0,base:100,color:'#a1a1aa',icon:'📜',desc:'Du leihst einem Staat Geld. Sehr ruhig, aber die Zinsen sind niedrig.'},
- {sym:'UNTER',name:'Unternehmensanleihen',type:'Anleihe',risk:2,mu:0.04,vol:0.08,rho:0.3,beta:0.2,base:100,color:'#cbd5e1',icon:'🧾',desc:'Du leihst Firmen Geld. Etwas mehr Zinsen als beim Staat, dafür etwas mehr Risiko.'},
- {sym:'WASSER',name:'Aqua Versorger',type:'Aktie',risk:1,mu:0.04,vol:0.12,rho:0.4,beta:0.4,base:85,color:'#0ea5e9',icon:'💧',desc:'Liefert Trinkwasser an Städte. Getrunken wird immer – deshalb extrem ruhig.'},
- {sym:'BURGER',name:'Burger Brothers',type:'Aktie',risk:2,mu:0.065,vol:0.21,rho:0.5,beta:0.8,base:55,color:'#f97316',icon:'🍔',desc:'Eine große Fast-Food-Kette. Schmeckt den Leuten, läuft das Geschäft.'},
- {sym:'SPORT',name:'SportMax',type:'Aktie',risk:3,mu:0.07,vol:0.25,rho:0.55,beta:0.9,base:68,color:'#84cc16',icon:'👟',desc:'Sportschuhe und Trikots. Ein berühmter Werbepartner kann den Kurs beflügeln.'},
- {sym:'AUTO',name:'AutoMobil AG',type:'Aktie',risk:3,mu:0.06,vol:0.27,rho:0.6,beta:1.0,base:95,color:'#ef4444',icon:'🚗',desc:'Baut Autos, zunehmend elektrisch. Hängt stark von der Wirtschaftslage ab.'},
- {sym:'BANK',name:'Nordbank',type:'Aktie',risk:3,mu:0.06,vol:0.28,rho:0.75,beta:1.3,base:28,color:'#3b82f6',icon:'🏦',desc:'Eine Großbank. In einer Krise leidet sie meist stärker als der Rest des Marktes.'},
- {sym:'STREAM',name:'StreamFlix',type:'Aktie',risk:4,mu:0.10,vol:0.40,rho:0.5,beta:1.1,base:120,color:'#e11d48',icon:'📺',desc:'Filme und Serien im Abo. Neue Abos treiben den Kurs, ein Flop kostet Kunden.'},
- {sym:'ROBO',name:'RoboWorks',type:'Aktie',risk:4,mu:0.12,vol:0.45,rho:0.5,beta:1.3,base:36,color:'#8b5cf6',icon:'🦾',desc:'Baut Roboter für Fabriken und Haushalte. Zukunftsmarkt mit großen Schwankungen.'},
- {sym:'FLUG',name:'SkyJet Airlines',type:'Aktie',risk:4,mu:0.07,vol:0.40,rho:0.6,beta:1.5,base:22,color:'#64748b',icon:'✈️',desc:'Eine Fluggesellschaft. Reisen die Leute viel, boomt sie – bei einer Krise bricht sie ein.'},
- {sym:'BIO',name:'BioNova Pharma',type:'Aktie',risk:5,mu:0.14,vol:0.60,rho:0.3,beta:1.0,base:15,color:'#ec4899',icon:'🧬',desc:'Forscht an einem neuen Wundermittel. Klappt es, vervielfacht sich der Kurs, sonst ist er schnell im Keller.'},
- {sym:'ETHER',name:'Ethera',type:'Krypto',risk:5,mu:0.12,vol:0.70,rho:0.3,beta:1.7,base:300,color:'#6366f1',icon:'💎',desc:'Eine ausgedachte Kryptowährung mit eigener Technik für „schlaue Verträge“. Sehr wild.'},
- {sym:'MEME',name:'MemeCoin',type:'Krypto',risk:5,mu:0.05,vol:1.10,rho:0.2,beta:2.0,base:2,color:'#f43f5e',icon:'🐸',desc:'Eine Witz-Währung, die nur vom Internet-Hype lebt. Kann sich in Stunden verdoppeln oder fast wertlos werden.'}
+ {sym:'WELT',sec:'',div:0.015,name:'Welt-ETF',type:'ETF',risk:2,mu:0.075,vol:0.16,rho:0.95,beta:1,base:100,color:'#38bdf8',icon:'🌍',desc:'Kauft auf einen Schlag kleine Anteile von über 1.000 Firmen auf der ganzen Welt. Geht eine Firma pleite, merkst du das kaum. Klingt langweilig – genau das ist seine Stärke.'},
+ {sym:'EURO',sec:'',div:0.025,name:'Europa-ETF',type:'ETF',risk:2,mu:0.06,vol:0.17,rho:0.9,beta:1,base:50,color:'#818cf8',icon:'🏰',desc:'Wie der Welt-ETF, aber nur mit großen Firmen aus Europa. Etwas weniger breit gestreut.'},
+ {sym:'ANL',sec:'anleihe',name:'Anleihen-Fonds',type:'Anleihe',risk:1,mu:0.03,vol:0.05,rho:0.1,beta:0,base:100,color:'#94a3b8',icon:'🏛️',desc:'Leiht Staaten Geld und bekommt dafür Zinsen. Schwankt wenig, wächst aber auch nur langsam.'},
+ {sym:'SCHOKO',sec:'essen',div:0.025,name:'Schoko-Fabrik',type:'Aktie',risk:2,mu:0.06,vol:0.2,rho:0.5,beta:0.8,base:75,color:'#d97706',icon:'🍫',desc:'Stellt Schokolade her. Gegessen wird immer – deshalb eine eher ruhige Aktie.'},
+ {sym:'MEDI',sec:'gesundheit',div:0.015,name:'MediPlus',type:'Aktie',risk:3,mu:0.08,vol:0.26,rho:0.5,beta:0.9,base:130,color:'#f472b6',icon:'💊',desc:'Entwickelt Medikamente. Neue Mittel können den Kurs springen lassen – nach oben oder nach unten.'},
+ {sym:'GRUEN',sec:'energie',div:0.015,name:'GrünStrom AG',type:'Aktie',risk:3,mu:0.09,vol:0.3,rho:0.5,beta:1.1,base:42,color:'#22c55e',icon:'🌬️',desc:'Betreibt Wind- und Solarparks. Wächst mit der Energiewende, hängt aber stark an den Strompreisen.'},
+ {sym:'NOVA',sec:'tech',name:'NovaTech',type:'Aktie',risk:4,mu:0.13,vol:0.38,rho:0.55,beta:1.3,base:180,color:'#22d3ee',icon:'🤖',desc:'Software und künstliche Intelligenz. Kann stark wachsen – und genauso stark fallen.'},
+ {sym:'PIXEL',sec:'unterhaltung',name:'Pixel Games',type:'Aktie',risk:4,mu:0.11,vol:0.42,rho:0.45,beta:1.2,base:24,color:'#a78bfa',icon:'🎮',desc:'Macht Videospiele. Ein Hit lässt den Kurs steigen, ein Flop lässt ihn abstürzen.'},
+ {sym:'SPACE',sec:'industrie',name:'SpaceLift',type:'Aktie',risk:5,mu:0.16,vol:0.65,rho:0.4,beta:1.6,base:9,color:'#fb923c',icon:'🚀',desc:'Junges Raumfahrt-Unternehmen. Riesige Chancen, riesiges Risiko: Es kann sich vervielfachen oder fast alles verlieren.'},
+ {sym:'BYTE',sec:'krypto',name:'ByteCoin',type:'Krypto',risk:5,mu:0.12,vol:0.8,rho:0.3,beta:1.8,base:3000,color:'#fbbf24',icon:'🪙',desc:'Eine ausgedachte Kryptowährung. Keine Firma dahinter, nur Angebot und Nachfrage – extrem wilde Schwankungen.'},
+ {sym:'TECHE',sec:'',name:'Tech-ETF',type:'ETF',risk:3,mu:0.10,vol:0.28,rho:0.85,beta:1.2,base:80,color:'#06b6d4',icon:'💻',desc:'Bündelt die größten Technik-Firmen in einem Paket. Mehr Schwung als der Welt-ETF, aber auch größere Ausschläge.'},
+ {sym:'SCHWELLE',sec:'',name:'Schwellenländer-ETF',type:'ETF',risk:3,mu:0.08,vol:0.24,rho:0.75,beta:1.1,base:40,color:'#f59e0b',icon:'🌏',desc:'Firmen aus Ländern, die gerade schnell wachsen. Hohe Chancen, dafür schwankt er stärker.'},
+ {sym:'DIVI',sec:'',div:0.04,name:'Dividenden-ETF',type:'ETF',risk:2,mu:0.055,vol:0.13,rho:0.85,beta:0.8,base:60,color:'#34d399',icon:'💰',desc:'Firmen, die regelmäßig Gewinne an ihre Aktionäre auszahlen. Gilt als solide und ruhig.'},
+ {sym:'IMMO',sec:'immobilien',div:0.035,name:'Immobilien-Fonds',type:'ETF',risk:2,mu:0.05,vol:0.14,rho:0.6,beta:0.6,base:70,color:'#fb7185',icon:'🏢',desc:'Besitzt Bürohäuser, Wohnungen und Einkaufszentren. Die Mieten sorgen für stetige Einnahmen.'},
+ {sym:'GOLD',sec:'gold',name:'Goldbarren',type:'Rohstoff',risk:2,mu:0.035,vol:0.15,rho:0,beta:-0.3,base:1800,color:'#facc15',icon:'🥇',desc:'Gold gilt als sicherer Hafen: Bei einem Börsenbeben steigt es oft, während Aktien fallen.'},
+ {sym:'OEL',sec:'oel',name:'Rohöl',type:'Rohstoff',risk:4,mu:0.04,vol:0.35,rho:0.3,beta:0.6,base:70,color:'#a8a29e',icon:'🛢️',desc:'Der Ölpreis springt bei Krisen, Kriegen und Wirtschaftsnachrichten wild hin und her.'},
+ {sym:'STAAT',sec:'anleihe',name:'Staatsanleihen',type:'Anleihe',risk:1,mu:0.025,vol:0.06,rho:0.1,beta:0,base:100,color:'#a1a1aa',icon:'📜',desc:'Du leihst einem Staat Geld. Sehr ruhig, aber die Zinsen sind niedrig.'},
+ {sym:'UNTER',sec:'anleihe',name:'Unternehmensanleihen',type:'Anleihe',risk:2,mu:0.04,vol:0.08,rho:0.3,beta:0.2,base:100,color:'#cbd5e1',icon:'🧾',desc:'Du leihst Firmen Geld. Etwas mehr Zinsen als beim Staat, dafür etwas mehr Risiko.'},
+ {sym:'WASSER',sec:'versorger',div:0.035,name:'Aqua Versorger',type:'Aktie',risk:1,mu:0.04,vol:0.12,rho:0.4,beta:0.4,base:85,color:'#0ea5e9',icon:'💧',desc:'Liefert Trinkwasser an Städte. Getrunken wird immer – deshalb extrem ruhig.'},
+ {sym:'BURGER',sec:'essen',div:0.02,name:'Burger Brothers',type:'Aktie',risk:2,mu:0.065,vol:0.21,rho:0.5,beta:0.8,base:55,color:'#f97316',icon:'🍔',desc:'Eine große Fast-Food-Kette. Schmeckt den Leuten, läuft das Geschäft.'},
+ {sym:'SPORT',sec:'konsum',name:'SportMax',type:'Aktie',risk:3,mu:0.07,vol:0.25,rho:0.55,beta:0.9,base:68,color:'#84cc16',icon:'👟',desc:'Sportschuhe und Trikots. Ein berühmter Werbepartner kann den Kurs beflügeln.'},
+ {sym:'AUTO',sec:'auto',div:0.03,name:'AutoMobil AG',type:'Aktie',risk:3,mu:0.06,vol:0.27,rho:0.6,beta:1.0,base:95,color:'#ef4444',icon:'🚗',desc:'Baut Autos, zunehmend elektrisch. Hängt stark von der Wirtschaftslage ab.'},
+ {sym:'BANK',sec:'finanz',div:0.04,name:'Nordbank',type:'Aktie',risk:3,mu:0.06,vol:0.28,rho:0.75,beta:1.3,base:28,color:'#3b82f6',icon:'🏦',desc:'Eine Großbank. In einer Krise leidet sie meist stärker als der Rest des Marktes.'},
+ {sym:'STREAM',sec:'unterhaltung',name:'StreamFlix',type:'Aktie',risk:4,mu:0.10,vol:0.40,rho:0.5,beta:1.1,base:120,color:'#e11d48',icon:'📺',desc:'Filme und Serien im Abo. Neue Abos treiben den Kurs, ein Flop kostet Kunden.'},
+ {sym:'ROBO',sec:'tech',name:'RoboWorks',type:'Aktie',risk:4,mu:0.12,vol:0.45,rho:0.5,beta:1.3,base:36,color:'#8b5cf6',icon:'🦾',desc:'Baut Roboter für Fabriken und Haushalte. Zukunftsmarkt mit großen Schwankungen.'},
+ {sym:'FLUG',sec:'reisen',name:'SkyJet Airlines',type:'Aktie',risk:4,mu:0.07,vol:0.40,rho:0.6,beta:1.5,base:22,color:'#64748b',icon:'✈️',desc:'Eine Fluggesellschaft. Reisen die Leute viel, boomt sie – bei einer Krise bricht sie ein.'},
+ {sym:'BIO',sec:'gesundheit',name:'BioNova Pharma',type:'Aktie',risk:5,mu:0.14,vol:0.60,rho:0.3,beta:1.0,base:15,color:'#ec4899',icon:'🧬',desc:'Forscht an einem neuen Wundermittel. Klappt es, vervielfacht sich der Kurs, sonst ist er schnell im Keller.'},
+ {sym:'ETHER',sec:'krypto',name:'Ethera',type:'Krypto',risk:5,mu:0.12,vol:0.70,rho:0.3,beta:1.7,base:300,color:'#6366f1',icon:'💎',desc:'Eine ausgedachte Kryptowährung mit eigener Technik für „schlaue Verträge“. Sehr wild.'},
+ {sym:'MEME',sec:'krypto',name:'MemeCoin',type:'Krypto',risk:5,mu:0.05,vol:1.10,rho:0.2,beta:2.0,base:2,color:'#f43f5e',icon:'🐸',desc:'Eine Witz-Währung, die nur vom Internet-Hype lebt. Kann sich in Stunden verdoppeln oder fast wertlos werden.'},
+ {sym:'TELE',sec:'versorger',div:0.05,name:'Telefónix',type:'Aktie',risk:2,mu:0.02,vol:0.16,rho:0.5,beta:0.6,base:16,color:'#2dd4bf',icon:'📞',desc:'Großer Telefon- und Internetanbieter. Wächst kaum, zahlt aber eine hohe Dividende.'},
+ {sym:'VERSI',sec:'finanz',div:0.045,name:'Allschutz Versicherung',type:'Aktie',risk:2,mu:0.035,vol:0.17,rho:0.6,beta:0.8,base:210,color:'#60a5fa',icon:'☂️',desc:'Versichert Autos, Häuser und Menschen. Ruhiges Geschäft mit kräftiger Dividende.'},
+ {sym:'STADTW',sec:'versorger',div:0.04,name:'Stadtwerke Energie',type:'Aktie',risk:2,mu:0.03,vol:0.14,rho:0.45,beta:0.5,base:48,color:'#fde047',icon:'💡',desc:'Liefert Strom und Gas an Haushalte. Langweilig, aber zuverlässig – und zahlt jeden Monat Dividende.'},
+ {sym:'NUDEL',sec:'essen',div:0.03,name:'Nudelwerk',type:'Aktie',risk:2,mu:0.04,vol:0.18,rho:0.5,beta:0.7,base:62,color:'#fcd34d',icon:'🍝',desc:'Macht Nudeln und Tomatensoße für ganz Europa. Gegessen wird immer.'},
+ {sym:'PETRO',sec:'oel',div:0.06,name:'PetroMax',type:'Aktie',risk:3,mu:0.02,vol:0.28,rho:0.45,beta:0.9,base:34,color:'#78716c',icon:'⛽',desc:'Ölkonzern mit Tankstellen. Hohe Dividende, aber der Kurs hängt am Ölpreis.'},
+ {sym:'CHIP',sec:'tech',div:0.005,name:'ChipForge',type:'Aktie',risk:4,mu:0.14,vol:0.42,rho:0.6,beta:1.4,base:140,color:'#14b8a6',icon:'🔲',desc:'Baut Computerchips für Handys, Autos und KI. Riesige Nachfrage – und riesige Schwankungen.'},
+ {sym:'CLOUD',sec:'tech',name:'WolkenNet',type:'Aktie',risk:4,mu:0.12,vol:0.38,rho:0.55,beta:1.3,base:88,color:'#7dd3fc',icon:'☁️',desc:'Vermietet Rechenzentren im Internet. Fast jede App läuft heute irgendwo „in der Cloud“.'},
+ {sym:'MODE',sec:'konsum',div:0.02,name:'Trendwear',type:'Aktie',risk:3,mu:0.06,vol:0.3,rho:0.5,beta:1.0,base:19,color:'#f0abfc',icon:'👕',desc:'Mode-Kette für junge Leute. Trifft sie den Trend, läuft es – sonst bleibt sie auf der Ware sitzen.'},
+ {sym:'TOYS',sec:'konsum',div:0.025,name:'Klötzchen AG',type:'Aktie',risk:2,mu:0.055,vol:0.2,rho:0.45,beta:0.7,base:72,color:'#facc15',icon:'🧱',desc:'Baut Spielzeug-Bausteine. Vor Weihnachten klingeln die Kassen.'},
+ {sym:'PAKET',sec:'industrie',div:0.03,name:'PaketBlitz',type:'Aktie',risk:3,mu:0.05,vol:0.24,rho:0.6,beta:1.0,base:41,color:'#fb923c',icon:'📦',desc:'Liefert Pakete aus Onlineshops. Je mehr im Internet bestellt wird, desto besser.'},
+ {sym:'BAHN',sec:'reisen',div:0.035,name:'SchienenExpress',type:'Aktie',risk:2,mu:0.035,vol:0.2,rho:0.5,beta:0.8,base:27,color:'#ef4444',icon:'🚆',desc:'Betreibt Züge in ganz Europa. Solide, mit regelmäßiger Dividende.'},
+ {sym:'WOHN',sec:'immobilien',div:0.04,name:'Wohnbau AG',type:'Aktie',risk:2,mu:0.035,vol:0.19,rho:0.55,beta:0.8,base:31,color:'#fda4af',icon:'🏘️',desc:'Vermietet über 100.000 Wohnungen. Die Mieten fließen als Dividende an die Aktionäre.'},
+ {sym:'VOLT',sec:'auto',name:'VoltCar',type:'Aktie',risk:5,mu:0.15,vol:0.6,rho:0.45,beta:1.5,base:12,color:'#a3e635',icon:'⚡',desc:'Junger Elektroauto-Hersteller. Kann der nächste Riese werden – oder pleitegehen.'},
+ {sym:'SONNE',sec:'energie',name:'Sonnenkraft',type:'Aktie',risk:4,mu:0.11,vol:0.45,rho:0.45,beta:1.2,base:8,color:'#fbbf24',icon:'☀️',desc:'Baut Solarzellen. Profitiert von der Energiewende, schwankt aber heftig.'},
+ {sym:'HEIMAT',sec:'',div:0.025,name:'Heimat-ETF',type:'ETF',risk:2,mu:0.045,vol:0.17,rho:0.9,beta:1.0,base:120,color:'#f87171',icon:'🇩🇪',desc:'Die 40 größten Firmen aus Deutschland in einem Paket. Zahlt Dividenden aus.'},
+ {sym:'SILBER',sec:'gold',name:'Silberbarren',type:'Rohstoff',risk:3,mu:0.03,vol:0.26,rho:0.1,beta:-0.1,base:24,color:'#e5e7eb',icon:'🥈',desc:'Der kleine Bruder von Gold. Wird auch in der Industrie gebraucht und schwankt stärker.'},
+ {sym:'KAFFEE',sec:'agrar',name:'Kaffeebohnen',type:'Rohstoff',risk:4,mu:0.03,vol:0.35,rho:0.1,beta:0.2,base:180,color:'#a16207',icon:'☕',desc:'Der Preis für Kaffee. Eine schlechte Ernte in Brasilien lässt ihn in die Höhe schießen.'},
+ {sym:'LUNA',sec:'krypto',name:'Lunaris',type:'Krypto',risk:5,mu:0.1,vol:0.95,rho:0.3,beta:1.9,base:7,color:'#c4b5fd',icon:'🌙',desc:'Noch eine ausgedachte Kryptowährung. Fans glauben an den Mond, Kritiker an den Absturz.'}
 ];
 const IDX={};ASSETS.forEach((a,i)=>IDX[a.sym]=i);
 
@@ -259,28 +294,92 @@ function h32(a,b,c){
   x^=x>>>15;x=Math.imul(x,0x2c1b3c6d);x^=x>>>12;x=Math.imul(x,0x297a2d39);x^=x>>>15;return(x>>>0)/4294967296;
 }
 function gauss(a,b,c){const u=Math.max(1e-12,h32(a,b,c)),v=h32(a+77,b,c+7919);return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+
+/* ================================================================ Ereignisse & Booms (für alle Spieler gleich) */
+const EVT_START=Math.floor((Date.UTC(2026,10,27,17,0,0)-EPOCH)/DAY_MS);
+const DIV_EVERY=30;              // Dividende alle 30 Spieltage (= 2,5 echte Stunden)
+const SECNAME={tech:'Technik',energie:'Energie',essen:'Lebensmittel',gesundheit:'Gesundheit',finanz:'Banken & Versicherungen',reisen:'Reisen',krypto:'Krypto',auto:'Auto',unterhaltung:'Unterhaltung',konsum:'Konsum',immobilien:'Immobilien',industrie:'Industrie',versorger:'Versorger',gold:'Edelmetalle',oel:'Öl',agrar:'Agrar'};
+const EVT_SEC={
+ tech:{up:['Durchbruch bei künstlicher Intelligenz – Technik-Aktien heben ab','Neue Handy-Generation verkauft sich wie verrückt','Regierung fördert Digitalisierung mit Milliarden'],dn:['Riesiger Hackerangriff verunsichert die Technik-Branche','Neues Gesetz bremst große Technik-Firmen aus','Chip-Mangel legt Fabriken lahm']},
+ energie:{up:['Regierung beschließt Turbo für Wind- und Solarstrom','Strompreise steigen – Energiefirmen verdienen prächtig'],dn:['Förderung für Ökostrom wird gekürzt','Windstille Wochen: Stromproduktion bricht ein']},
+ essen:{up:['Grillsommer! Lebensmittelfirmen verkaufen Rekordmengen','Neue Diät-Mode: Alle wollen Nudeln und Schokolade'],dn:['Zutaten werden teurer – Lebensmittelfirmen verdienen weniger','Lebensmittelskandal erschüttert Verbraucher']},
+ gesundheit:{up:['Neues Medikament gegen eine Volkskrankheit zugelassen','Bevölkerung wird älter – Pharma-Firmen wachsen'],dn:['Behörde stoppt wichtige Medikamenten-Studie','Regierung drückt Preise für Medikamente']},
+ finanz:{up:['Zinsen steigen – Banken verdienen mehr','Banken bestehen Stresstest mit Bestnoten'],dn:['Kredite platzen – Banken müssen Milliarden abschreiben','Bankenaufsicht verhängt Rekordstrafe']},
+ reisen:{up:['Reiselust explodiert – Flüge und Züge ausgebucht','Ferien-Rekord: So viele Urlauber wie nie'],dn:['Kerosinpreis schießt nach oben','Streik legt Flughäfen und Bahnhöfe lahm']},
+ krypto:{up:['Riesiger Onlineshop akzeptiert jetzt Kryptowährungen','Großinvestoren steigen in Krypto ein'],dn:['Krypto-Börse gehackt – Millionen gestohlen','Mehrere Länder verbieten Krypto-Handel']},
+ auto:{up:['Kaufprämie für E-Autos beschlossen','Autoverkäufe auf Rekordhoch'],dn:['Zölle auf Autos verschärft','Rückruf-Welle in der Autobranche']},
+ unterhaltung:{up:['Alle bleiben zu Hause: Streaming und Games boomen','Rekordsommer im Kino und bei Spielen'],dn:['Abo-Müdigkeit: Viele kündigen ihre Streaming-Abos','Neue Altersregeln bremsen Spielefirmen']},
+ konsum:{up:['Weihnachtsgeschäft übertrifft alle Erwartungen','Löhne steigen – die Leute shoppen mehr'],dn:['Kaufzurückhaltung: Die Menschen sparen','Lieferprobleme: Regale bleiben leer']},
+ immobilien:{up:['Zinsen sinken – Immobilien werden wieder gefragt','Wohnungsmangel treibt die Mieten'],dn:['Zinsen steigen – Häuserpreise fallen','Mietpreisbremse verschärft']},
+ industrie:{up:['Großaufträge für die Industrie','Weltwirtschaft brummt'],dn:['Lieferketten gestört – Fabriken stehen still','Energiepreise belasten die Industrie']},
+ versorger:{up:['Versorger gelten als sicherer Hafen – Anleger greifen zu'],dn:['Regierung deckelt Strom- und Wasserpreise']},
+ gold:{up:['Unsicherheit: Anleger flüchten in Edelmetalle','Notenbanken kaufen tonnenweise Gold'],dn:['Alles ruhig an den Märkten – Gold ist weniger gefragt']},
+ oel:{up:['Ölstaaten drosseln die Förderung','Konflikt in einer Ölregion – Preis springt'],dn:['Riesiges neues Ölfeld entdeckt','Weniger Nachfrage: Ölpreis rutscht ab']},
+ agrar:{up:['Missernte in Brasilien – Kaffee wird knapp'],dn:['Rekordernte: Kaffee im Überfluss']}
+};
+const EVT_CO={up:['{n} meldet Rekordgewinn','{n} bekommt einen Riesenauftrag','Neues Produkt von {n} wird zum Verkaufshit','{n} übernimmt einen Konkurrenten','Star-Investorin kauft Aktien von {n}','{n} erhöht die Dividende'],
+ dn:['{n} muss Produkte zurückrufen','Chefin von {n} tritt überraschend zurück','{n} verfehlt die Gewinnerwartungen','Hackerangriff auf {n}','Streik bei {n}','{n} verliert wichtigen Gerichtsprozess']};
+const CRASH_WHY=['Eine große Bank ist pleite','Eine Immobilienblase ist geplatzt','Ein Handelskrieg eskaliert','Eine neue Krankheit legt die Wirtschaft lahm','Die Notenbank erhöht überraschend die Zinsen'];
+const BOOM_WHY=['{n} wird von Internet-Fans gehypt','Gerüchte: Ein Weltkonzern will {n} kaufen','{n} meldet eine Sensations-Erfindung','Ein berühmter Milliardär twittert über {n}'];
+const EVC=new Map();
+function pick(arr,u){return arr[Math.min(arr.length-1,Math.floor(u*arr.length))];}
+const isStock=a=>a.type==='Aktie'||a.type==='Krypto';
+function eventsOn(d){
+  if(d<EVT_START)return null;
+  let e=EVC.get(d);if(e!==undefined)return e;
+  const r=h32(50,d,1),u=k=>h32(51,d,k),J={};let ev=null;
+  if(r<0.004){ // Börsencrash
+    const m=-(0.12+u(1)*0.18);ASSETS.forEach((a,i)=>{J[a.sym]=a.beta*m*(0.8+0.4*u(10+i));});
+    ev={kind:'crash',icon:'💥',title:'BÖRSENCRASH!',text:pick(CRASH_WHY,u(2))+'. Panik an den Märkten – fast alle Kurse stürzen ab.'};
+  }else if(r<0.012){
+    const m=-(0.04+u(1)*0.05);ASSETS.forEach((a,i)=>{J[a.sym]=a.beta*m*(0.8+0.4*u(10+i));});
+    ev={kind:'down',icon:'📉',title:'Schwarzer Tag an der Börse',text:pick(['Zinsangst geht um','Schlechte Wirtschaftszahlen','Anleger sind nervös'],u(2))+' – die Kurse fallen auf breiter Front.'};
+  }else if(r<0.022){
+    const m=0.04+u(1)*0.05;ASSETS.forEach((a,i)=>{J[a.sym]=a.beta*m*(0.8+0.4*u(10+i));});
+    ev={kind:'up',icon:'🎉',title:'Kursfeuerwerk!',text:pick(['Die Zinsen sinken','Die Wirtschaft wächst stärker als gedacht','Gute Nachrichten aus aller Welt'],u(2))+' – fast alle Kurse steigen.'};
+  }else if(r<0.026){ // Boom
+    const c=ASSETS.filter(isStock),a=c[Math.floor(u(1)*c.length)],L=Math.log(2+u(3)*u(3)*2.5),dur=2+Math.floor(u(4)*3);
+    ev={kind:'boom',icon:'🚀',title:'MEGA-BOOM bei '+a.name+'!',text:pick(BOOM_WHY,u(2)).replace('{n}',a.name)+'. Der Kurs explodiert auf das '+fmtN(Math.exp(L),1)+'-Fache – doch solche Hypes halten meist nicht lange.',boom:{sym:a.sym,L,dur}};
+  }else if(r<0.13){ // Branche
+    const secs=Object.keys(EVT_SEC).filter(k=>ASSETS.some(a=>a.sec===k)),sec=pick(secs,u(1)),up=u(2)<0.52,mag=(0.04+u(3)*0.1)*(up?1:-1);
+    ASSETS.forEach((a,i)=>{if(a.sec===sec)J[a.sym]=mag*(0.7+0.6*u(10+i));});
+    ev={kind:up?'sec-up':'sec-dn',icon:up?'📈':'📉',title:'Branche '+SECNAME[sec]+(up?': gute Nachrichten':': schlechte Nachrichten'),text:pick(EVT_SEC[sec][up?'up':'dn'],u(4))+'.'};
+  }else if(r<0.27){ // einzelne Firma
+    const c=ASSETS.filter(a=>a.type==='Aktie'),a=c[Math.floor(u(1)*c.length)],up=u(2)<0.53,mag=(0.06+u(3)*0.14)*(up?1:-1);
+    J[a.sym]=mag;
+    ev={kind:up?'co-up':'co-dn',icon:up?'🟢':'🔴',title:a.icon+' '+a.name,text:pick(EVT_CO[up?'up':'dn'],u(4)).replace('{n}',a.name)+'.'};
+  }
+  if(ev){ev.d=d;ev.J=J;}
+  EVC.set(d,ev||null);return ev||null;
+}
+function evJump(sym,d){const e=eventsOn(d);return e&&e.J[sym]||0;}
+function boomOff(sym,d){let o=0;for(let k=0;k<=5;k++){const e=eventsOn(d-k);if(e&&e.boom&&e.boom.sym===sym&&k<=e.boom.dur)o+=e.boom.L*Math.pow(1-k/(e.boom.dur+1),1.6);}return o;}
+function boomStart(sym,d){const e=eventsOn(d);return e&&e.boom&&e.boom.sym===sym?e.boom.L:0;}
+function recentEvents(from,to){const out=[];for(let d=to;d>=from&&d>=EVT_START;d--){const e=eventsOn(d);if(e)out.push(e);}return out;}
+
 const CL=ASSETS.map(()=>[]),SHOCK=[];let computedTo=-HIST-1;
 function ensure(D){
   for(let d=computedTo+1;d<=D;d++){
     const zm=gauss(1,d,11),hc=h32(2,d,13);let shock=0;
-    if(hc<0.003)shock=-(0.04+h32(3,d,17)*0.07);else if(hc>0.995)shock=0.025+h32(4,d,19)*0.04;
+    if(d>=EVT_START){}else if(hc<0.003)shock=-(0.04+h32(3,d,17)*0.07);else if(hc>0.995)shock=0.025+h32(4,d,19)*0.04;
     SHOCK[d+HIST]=shock;
     ASSETS.forEach((a,i)=>{
       const prev=d===-HIST?a.base:CL[i][d-1+HIST],m=a.mu/YEAR,s=a.vol/Math.sqrt(YEAR);
       const z=a.rho*zm+Math.sqrt(1-a.rho*a.rho)*gauss(i+100,d,23);
-      CL[i][d+HIST]=Math.max(0.01,prev*Math.exp(m-s*s/2+s*z+a.beta*shock));
+      CL[i][d+HIST]=Math.max(0.0001,prev*Math.exp(m-s*s/2+s*z+a.beta*shock+(d>=EVT_START?evJump(a.sym,d):0)));
     });
     computedTo=d;
   }
 }
-function closeP(i,d){if(d<-HIST)return ASSETS[i].base;ensure(d);return CL[i][d+HIST];}
+function closeP(i,d){if(d<-HIST)return ASSETS[i].base;ensure(d);const c=CL[i][d+HIST];return d>=EVT_START?c*Math.exp(boomOff(ASSETS[i].sym,d)):c;}
 const PATH=new Map();
 function path(i,d){
   const k=i*1e7+d;let p=PATH.get(k);if(p)return p;
   const a=ASSETS[i],c0=closeP(i,d-1),c1=closeP(i,d),L=Math.log(c1/c0),s=a.vol/Math.sqrt(YEAR),W=[0];
   for(let j=1;j<=TICKS;j++)W[j]=W[j-1]+gauss(i+300,d,1000+j)/Math.sqrt(TICKS);
   p=new Float64Array(TICKS+1);
-  for(let j=0;j<=TICKS;j++)p[j]=Math.log(c0)+(j/TICKS)*L+s*0.9*(W[j]-(j/TICKS)*W[TICKS]);
+  const Jp=d>=EVT_START?evJump(a.sym,d)+boomStart(a.sym,d):0;
+  for(let j=0;j<=TICKS;j++)p[j]=Math.log(c0)+Jp*Math.min(1,j/2)+(j/TICKS)*(L-Jp)+s*0.9*(W[j]-(j/TICKS)*W[TICKS]);
   if(PATH.size>4000)PATH.clear();PATH.set(k,p);return p;
 }
 function priceAt(i,t){
@@ -323,7 +422,7 @@ function worthHistory(st,n){
     while(k<tx.length&&tx[k].t<=end){
       const x=tx[k++],td=dayOf(x.t);
       if(x.type==='snap'){cash=x.cash;sav=x.sav;sd=x.savDay;for(const s in hold)delete hold[s];Object.assign(hold,x.hold);}
-      else if(x.type==='start'||x.type==='quiz')cash+=x.amount;
+      else if(x.type==='start'||x.type==='quiz'||x.type==='div')cash+=x.amount;
       else if(x.type==='buy'){cash-=x.amount+FEE;hold[x.sym]=(hold[x.sym]||0)+x.qty;}
       else if(x.type==='sell'){cash+=x.amount-FEE;hold[x.sym]=(hold[x.sym]||0)-x.qty;}
       else if(x.type==='dep'){acc(td);cash-=x.amount;sav+=x.amount;}
@@ -346,7 +445,7 @@ function compactTx(st){
   let cash=0,sav=0,sd=dayOf(st.created);const hold={};
   old.forEach(x=>{const td=dayOf(x.t);
     if(x.type==='snap'){cash=x.cash;sav=x.sav;sd=x.savDay;for(const s in hold)delete hold[s];Object.assign(hold,x.hold);}
-    else if(x.type==='start'||x.type==='quiz')cash+=x.amount;
+    else if(x.type==='start'||x.type==='quiz'||x.type==='div')cash+=x.amount;
     else if(x.type==='buy'){cash-=x.amount+FEE;hold[x.sym]=(hold[x.sym]||0)+x.qty;}
     else if(x.type==='sell'){cash+=x.amount-FEE;hold[x.sym]=(hold[x.sym]||0)-x.qty;}
     else if(x.type==='dep'){sav*=Math.pow(1+SAV_R,td-sd);sd=td;cash-=x.amount;sav+=x.amount;}
@@ -381,11 +480,11 @@ const S={mode:'local',uid:null,name:'',st:null,view:'depot',arg:null,ui:{range:'
 let ST=null; // aktueller Spielstand
 function newState(name){
   const t=now();
-  return{v:1,name,created:t,cash:START,holdings:{},sav:{bal:0,day:dayOf(t)},tx:[{t,type:'start',amount:START}],vocab:{lists:[]},earn:{date:'',sum:0,words:{}},alerts:[],orders:[]};
+  return{v:1,name,created:t,cash:START,holdings:{},sav:{bal:0,day:dayOf(t)},tx:[{t,type:'start',amount:START}],vocab:{lists:[]},earn:{date:'',sum:0,words:{}},alerts:[],orders:[],divDay:dayOf(t),divSum:0};
 }
 function fixState(st){
   st.holdings=st.holdings||{};st.sav=st.sav||{bal:0,day:dayOf(now())};st.tx=st.tx||[];st.vocab=st.vocab||{lists:[]};st.vocab.lists=st.vocab.lists||[];
-  st.earn=st.earn||{date:'',sum:0,words:{}};st.earn.words=st.earn.words||{};st.alerts=Array.isArray(st.alerts)?st.alerts:[];st.orders=Array.isArray(st.orders)?st.orders:[];return st;
+  st.earn=st.earn||{date:'',sum:0,words:{}};st.earn.words=st.earn.words||{};st.alerts=Array.isArray(st.alerts)?st.alerts:[];st.orders=Array.isArray(st.orders)?st.orders:[];if(st.divDay==null)st.divDay=dayOf(now());st.divSum=st.divSum||0;return st;
 }
 const LP='kursheld.profiles',LC='kursheld.current';
 function localProfiles(){return store.get(LP)||{};}
@@ -548,7 +647,7 @@ function updateLive(force){
 }
 let liveN=0;
 setInterval(()=>{
-  if(!ST)return;liveN++;updateLive(false);checkAlerts();checkOrders();
+  if(!ST)return;liveN++;updateLive(false);checkEvents(false);payDividends();checkAlerts();checkOrders();
   if(S.mode==='local'&&liveN%30===0&&((ST.alerts&&ST.alerts.some(a=>!a.fired))||(ST.orders&&ST.orders.some(o=>!o.done))))save();
   if(S.view==='aktie')drawAssetChart();
   if(S.view==='depot'&&liveN%5===0)drawWorthChart();
@@ -610,7 +709,7 @@ function donut(parts){
 function renderTicker(){
   const el=$('#ticker');if(!el)return;const d=dayOf(now()),items=[];
   for(let k=d-1;k>=d-12;k--){
-    ensure(k);const sh=SHOCK[k+HIST];
+    ensure(k);const ev=eventsOn(k);if(ev)items.push(ev.icon+' Tag '+k+': '+ev.title);const sh=SHOCK[k+HIST];
     if(sh<-0.03)items.push('📉 Tag '+k+': Börsenbeben! Fast alle Kurse fallen deutlich.');
     if(sh>0.02)items.push('📈 Tag '+k+': Jubel an der Börse – die Kurse steigen fast überall.');
     ASSETS.forEach((a,i)=>{const r=closeP(i,k)/closeP(i,k-1)-1,s=a.vol/Math.sqrt(YEAR);
@@ -622,7 +721,7 @@ function renderTicker(){
 }
 
 /* ================================================================ Ansicht: Depot */
-const TIPS=['Streuen statt alles auf eine Karte setzen: Ein ETF enthält hunderte Firmen auf einmal.','Kurse schwanken. Wer bei jedem Absturz verkauft, macht Verluste fest.','Je höher die mögliche Rendite, desto größer meist auch das Risiko.','Jede Order kostet 1 € Gebühr – ständiges Hin-und-her-Handeln frisst Gewinne.','Tagesgeld ist sicher, bringt aber nur wenig Zinsen.','Vergleiche dich mit den Computer-Gegnern in der Rangliste: Welche Strategie gewinnt auf Dauer?'];
+const TIPS=['Streuen statt alles auf eine Karte setzen: Ein ETF enthält hunderte Firmen auf einmal.','Kurse schwanken. Wer bei jedem Absturz verkauft, macht Verluste fest.','Je höher die mögliche Rendite, desto größer meist auch das Risiko.','Jede Order kostet 1 € Gebühr – ständiges Hin-und-her-Handeln frisst Gewinne.','Tagesgeld ist sicher, bringt aber nur wenig Zinsen.','Vergleiche dich mit den Computer-Gegnern in der Rangliste: Welche Strategie gewinnt auf Dauer?','Dividenden-Aktien zahlen dir regelmäßig Geld – auch wenn der Kurs mal fällt.','Nach einem Börsencrash erholen sich die Kurse oft wieder. Panikverkäufe sind meist ein Fehler.','Ein Mega-Boom hält selten lange. Wer zu spät einsteigt, kauft oft teuer ein.'];
 function viewDepot(){
   const t=now(),w=worth(ST,t),d=dayOf(t),rows=[],parts=[{l:'Bargeld',v:ST.cash,c:'#64748b'},{l:'Tagesgeld',v:savNow(ST.sav,d),c:'#fbbf24'}];
   Object.keys(ST.holdings).sort((a,b)=>ST.holdings[b].qty*price(b)-ST.holdings[a].qty*price(a)).forEach(s=>{
@@ -644,6 +743,7 @@ function viewDepot(){
     '<div class="card"><div class="row"><div class="av" style="background:rgba(251,191,36,.15)">📚</div><div class="sp"><div class="nm">Mit Vokabeln verdienen</div><div class="sub">20 € pro richtiger Antwort, bis 2.000 € pro Tag</div></div></div><div class="mt prog"><i data-l="earnbar"></i></div><div class="row" style="margin-top:6px"><span class="sub sp" data-l="earn"></span><button class="btn pri sm" data-go="vokabeln">Üben</button></div></div>'+
     '<div class="card"><div class="row"><div class="sp"><div class="sub">Bargeld</div><div class="num" style="font-weight:800;font-size:20px" data-l="cash"></div></div><div class="r"><div class="sub">Nächster Spieltag in</div><div class="num" style="font-weight:800;font-size:20px" data-l="next"></div></div></div></div>'+
     '<div class="card"><div class="row"><div class="av" style="background:rgba(167,139,250,.15)">🔔</div><div class="sp"><div class="nm">Wecker &amp; Orders</div><div class="sub">'+((ST.alerts.some(a=>!a.fired)||ST.orders.some(o=>!o.done))?ST.alerts.filter(a=>!a.fired).length+' Wecker · '+ST.orders.filter(o=>!o.done).length+' Orders aktiv':'Benachrichtigen lassen oder automatisch kaufen und verkaufen')+'</div></div><button class="btn sm" data-go="wecker">'+((ST.alerts.length||ST.orders.length)?'Öffnen':'Einrichten')+'</button></div></div>'+
+    (ST.divSum>0||Object.keys(ST.holdings).some(s=>ASSETS[IDX[s]].div)?'<div class="card"><div class="row"><div class="av" style="background:rgba(34,197,94,.15)">💸</div><div class="sp"><div class="nm">Dividenden</div><div class="sub">Bisher bekommen: '+fmtE(ST.divSum||0)+'</div></div></div></div>':'')+
     '<div class="card"><h3>💡 Tipp des Tages</h3><div>'+esc(tip)+'</div></div>'+
    '</div></div>';
 }
@@ -656,12 +756,13 @@ function drawWorthChart(){
 
 /* ================================================================ Ansicht: Markt */
 function viewMarkt(){
-  const types=['Alle','Im Depot','Wecker','ETF','Aktie','Krypto','Rohstoff','Anleihe'];
-  const rows=ASSETS.filter(a=>S.ui.filter==='Alle'||(S.ui.filter==='Im Depot'?!!ST.holdings[a.sym]:S.ui.filter==='Wecker'?(alertsFor(a.sym).some(x=>!x.fired)||ordersFor(a.sym).some(x=>!x.done)):a.type===S.ui.filter)).map(a=>{const i=IDX[a.sym],own=ST.holdings[a.sym],nal=alertsFor(a.sym).filter(x=>!x.fired).length+ordersFor(a.sym).filter(x=>!x.done).length;
-    return'<div class="li" data-asset="'+a.sym+'"><div class="av" style="background:'+hexA(a.color,.16)+'">'+a.icon+'</div><div class="sp"><div class="nm">'+esc(a.name)+(own?' <span class="tag you">im Depot</span>':'')+(nal?' <span title="Wecker oder Order aktiv">🔔</span>':'')+'</div><div class="sub">'+a.type+' · Risiko '+riskHtml(a.risk)+'</div></div>'+spark(i)+'<div class="r" style="min-width:96px"><div class="num" style="font-weight:700" data-l="price:'+a.sym+'"></div><div class="num" data-l="chg:'+a.sym+'"></div></div></div>';}).join('');
+  const types=['Alle','Im Depot','Dividende','Wecker','ETF','Aktie','Krypto','Rohstoff','Anleihe'];
+  const rows=ASSETS.filter(a=>S.ui.filter==='Alle'||(S.ui.filter==='Im Depot'?!!ST.holdings[a.sym]:S.ui.filter==='Dividende'?!!a.div:S.ui.filter==='Wecker'?(alertsFor(a.sym).some(x=>!x.fired)||ordersFor(a.sym).some(x=>!x.done)):a.type===S.ui.filter)).map(a=>{const i=IDX[a.sym],own=ST.holdings[a.sym],nal=alertsFor(a.sym).filter(x=>!x.fired).length+ordersFor(a.sym).filter(x=>!x.done).length;
+    return'<div class="li" data-asset="'+a.sym+'"><div class="av" style="background:'+hexA(a.color,.16)+'">'+a.icon+'</div><div class="sp"><div class="nm">'+esc(a.name)+(own?' <span class="tag you">im Depot</span>':'')+(nal?' <span title="Wecker oder Order aktiv">🔔</span>':'')+'</div><div class="sub">'+a.type+(a.div?' · 💸 '+fmtN(a.div*100,1)+' %':'')+' · Risiko '+riskHtml(a.risk)+'</div></div>'+spark(i)+'<div class="r" style="min-width:96px"><div class="num" style="font-weight:700" data-l="price:'+a.sym+'"></div><div class="num" data-l="chg:'+a.sym+'"></div></div></div>';}).join('');
   return'<div class="pageh"><h2>Markt</h2><span class="sp"></span><button class="btn sm" data-go="wecker">🔔 Wecker &amp; Orders</button></div>'+
    '<div class="seg" style="margin-bottom:12px;overflow:auto">'+types.map(t=>'<button class="'+(S.ui.filter===t?'on':'')+'" data-filter="'+t+'">'+t+'</button>').join('')+'</div>'+
    '<div class="card"><div class="list">'+(rows||'<div class="empty"><div class="e">🔍</div>Hier ist gerade nichts.</div>')+'</div></div>'+
+   '<div class="card mt" id="news"><h3>📰 Börsen-Nachrichten</h3>'+newsHtml(recentEvents(dayOf(now())-60,dayOf(now())).slice(0,15),true)+'</div>'+
    '<div class="card mt"><h3>So funktioniert die Börse hier</h3><div class="sub" style="font-size:14px">Ein Spieltag dauert 5 echte Minuten, ein Spieljahr 360 Spieltage (30 Stunden). Die Kurse sind für alle Spieler gleich und laufen weiter, auch wenn die App geschlossen ist. Jede Order kostet '+fmtE(FEE,0)+' Gebühr. Alle Firmen sind ausgedacht, alles ist Spielgeld.</div></div>';
 }
 
@@ -677,7 +778,9 @@ function viewAktie(){
     '<div class="seg" style="width:230px">'+['1T','7T','30T','1J'].map(r=>'<button class="'+(S.ui.range===r?'on':'')+'" data-range="'+r+'">'+r+'</button>').join('')+'</div></div>'+
     '<canvas class="chart mt" id="achart"></canvas></div>'+
     '<div class="stats"><div class="stat"><div class="k">Tageshoch</div><div class="v num">'+fmtE(hi)+'</div></div><div class="stat"><div class="k">Tagestief</div><div class="v num">'+fmtE(lo)+'</div></div><div class="stat"><div class="k">1 Spieljahr</div><div class="v num '+(y1>=0?'up':'down')+'">'+fmtP(y1)+'</div></div><div class="stat"><div class="k">Schwankung</div><div class="v">'+(a.vol<0.1?'sehr gering':a.vol<0.22?'gering':a.vol<0.35?'mittel':a.vol<0.55?'hoch':'extrem')+'</div></div></div>'+
+    (a.div?'<div class="card"><h3>💸 Dividende</h3><div>'+fmtN(a.div*100,1)+' % pro Spieljahr, ausgezahlt alle '+DIV_EVERY+' Spieltage (≈ '+fmtN(DIV_EVERY*5/60,1)+' Std.).</div><div class="sub mt">Nächste Auszahlung an Tag '+nextDivDay(s,d-1)+' – das sind etwa '+fmtE(priceAt(i,t)*a.div*DIV_EVERY/YEAR)+' pro Stück'+(own?' · für dich ≈ '+fmtE(own.qty*priceAt(i,t)*a.div*DIV_EVERY/YEAR):'')+'.</div><div class="hint mt">Das Geld landet automatisch bei deinem Bargeld – du musst die Aktie nur besitzen.</div></div>':'')+
     '<div class="card"><h3>Worum geht es?</h3><div>'+esc(a.desc)+'</div></div>'+
+    (function(){const l=recentEvents(d-120,d).filter(e=>e.J[s]||(e.boom&&e.boom.sym===s)).slice(0,6);return l.length?'<div class="card"><h3>📰 Nachrichten</h3>'+newsHtml(l,false)+'</div>':'';})()+
    '</div><div class="grid" style="align-content:start">'+
     (own?'<div class="card"><h3>In deinem Depot</h3><div class="row"><div class="sp"><div class="num" style="font-weight:800;font-size:22px" data-l="hval:'+s+'"></div><div class="sub">'+fmtQ(own.qty)+' Stück · bezahlt '+fmtE(own.cost)+'</div></div><div data-l="hpl:'+s+'"></div></div></div>':'')+
     '<div class="card"><div class="seg" style="margin-bottom:14px"><button class="'+(buy?'on':'')+'" data-trade="buy">Kaufen</button><button class="'+(!buy?'on':'')+'" data-trade="sell"'+(own?'':' disabled')+'>Verkaufen</button></div>'+
@@ -1025,6 +1128,24 @@ function viewWecker(){
 }
 
 
+
+/* ================================================================ Dividenden */
+const divOff=sym=>(IDX[sym]*7)%DIV_EVERY;
+function nextDivDay(sym,d){const o=divOff(sym);let k=d+1;while((k+o)%DIV_EVERY!==0)k++;return k;}
+function payDividends(){
+  if(!ST)return;const cur=dayOf(now());if(ST.divDay>=cur)return;
+  const from=Math.max(ST.divDay+1,cur-400),paid=[];
+  for(let d=from;d<=cur;d++){
+    for(const s in ST.holdings){const i=IDX[s],a=ASSETS[i];if(!a||!a.div||(d+divOff(s))%DIV_EVERY!==0)continue;
+      const amt=Math.round(ST.holdings[s].qty*closeP(i,d-1)*a.div*DIV_EVERY/YEAR*100)/100;if(amt<0.01)continue;
+      ST.cash+=amt;ST.divSum+=amt;ST.tx.push({t:Math.min(now(),dayStart(d)+1000),type:'div',sym:s,amount:amt});paid.push({a,amt});}
+  }
+  ST.divDay=cur;
+  if(paid.length){save();const tot=paid.reduce((x,y)=>x+y.amt,0);
+    const firms=[...new Set(paid.map(x=>x.a.name))];toast('💸 Dividende: '+(firms.length===1?firms[0]+' zahlt dir ':firms.length+' Firmen zahlen dir ')+fmtE(tot)+(paid.length>firms.length?' ('+paid.length+' Auszahlungen)':''),'ok',6000);
+    if(S.view==='depot'||S.view==='aktie')renderView();}
+}
+
 /* ================================================================ Limit-Orders */
 const OKIND={
   buy: {ic:'📥',l:'Günstig kaufen',  side:'buy', below:true, help:'Kursheld kauft für deinen Betrag, sobald der Kurs auf den Wert fällt oder darunter.'},
@@ -1113,6 +1234,60 @@ function orderRow(o,withAsset){
    '<button class="btn sm" data-act="delorder" data-id="'+o.id+'" title="Löschen">✕</button></div>';
 }
 
+
+/* ================================================================ Ereignis-Pop-ups */
+const EVSEEN='kursheld.evseen';
+function effList(e){
+  const arr=Object.keys(e.J).map(s=>({a:ASSETS[IDX[s]],f:Math.exp(e.J[s])-1})).filter(x=>x.a&&Math.abs(x.f)>0.001);
+  if(e.boom)arr.unshift({a:ASSETS[IDX[e.boom.sym]],f:Math.exp(e.boom.L)-1,boom:true});
+  arr.sort((x,y)=>(y.boom?1:0)-(x.boom?1:0)||(ST&&ST.holdings[y.a.sym]?1:0)-(ST&&ST.holdings[x.a.sym]?1:0)||Math.abs(y.f)-Math.abs(x.f));
+  return arr;
+}
+function effChip(x){return'<div class="evr" data-asset="'+x.a.sym+'"><span class="evi">'+x.a.icon+'</span><span class="sp">'+esc(x.a.name)+(ST&&ST.holdings[x.a.sym]?' <span class="tag you">im Depot</span>':'')+'</span><b class="'+(x.f>=0?'up':'down')+'">'+(x.boom?'×'+fmtN(x.f+1,1):fmtP(x.f))+'</b></div>';}
+function evCls(e){return e.kind==='crash'||e.kind==='down'?'bad':e.kind==='boom'||e.kind==='up'?'good':e.kind.endsWith('dn')?'bad2':'good2';}
+let EVQ=[];
+function showEvents(list){
+  if(!list.length)return;EVQ=EVQ.concat(list);if(!$('#evpop'))nextEvent();
+}
+function nextEvent(){
+  const old=$('#evpop');if(old)old.remove();if(!EVQ.length)return;
+  if(EVQ.length>3){const all=EVQ;EVQ=[];return evSummary(all);}
+  const e=EVQ.shift(),eff=effList(e),cur=dayOf(now()),age=cur-e.d;
+  const box=document.createElement('div');box.id='evpop';box.className='evpop '+evCls(e)+(e.kind==='crash'?' shake':'');
+  box.innerHTML='<div class="evcard"><div class="evbig">'+e.icon+'</div><div class="evtag">'+(e.kind==='crash'?'EILMELDUNG':e.kind==='boom'?'SENSATION':'BÖRSEN-NEWS')+' · Tag '+e.d+(age>0?' (vor '+agoStr(age*DAY_MS)+')':'')+'</div><h2>'+esc(e.title)+'</h2><p>'+esc(e.text)+'</p>'+
+   '<div class="evlist">'+eff.slice(0,6).map(effChip).join('')+(eff.length>6?'<div class="sub" style="text-align:center;margin-top:6px">… und '+(eff.length-6)+' weitere</div>':'')+'</div>'+
+   (e.boom?'<div class="hint" style="margin:10px 0 0">💡 Booms fallen meist innerhalb von '+(e.boom.dur+1)+' Spieltagen (≈ '+((e.boom.dur+1)*5)+' Minuten) zurück. Wer verkaufen will, sollte schnell sein!</div>':'')+
+   '<div class="row mt" style="gap:8px"><button class="btn sp" id="evok">'+(EVQ.length?'Weiter ('+EVQ.length+')':'OK')+'</button><button class="btn pri sp" id="evgo">'+(e.boom?'Zur Aktie':'Zum Markt')+'</button></div></div>';
+  document.body.appendChild(box);
+  $('#evok').onclick=nextEvent;
+  $('#evgo').onclick=()=>{EVQ=[];box.remove();e.boom?go('aktie',e.boom.sym):go('markt');};
+  box.addEventListener('click',ev=>{if(ev.target===box)nextEvent();const r=ev.target.closest('.evr');if(r){EVQ=[];box.remove();go('aktie',r.dataset.asset);}});
+  if(e.kind==='crash'||e.kind==='boom')beep();
+}
+function evSummary(all){
+  const big=e=>e.kind==='crash'||e.kind==='boom'?2:e.kind==='up'||e.kind==='down'?1:0;all=all.slice().sort((x,y)=>big(y)-big(x)||y.d-x.d);
+  const box=document.createElement('div');box.id='evpop';box.className='evpop good2';
+  box.innerHTML='<div class="evcard"><div class="evbig">📰</div><div class="evtag">WÄHREND DU WEG WARST</div><h2>'+all.length+' Börsen-Nachrichten</h2>'+
+   '<div class="evlist">'+all.slice(0,8).map(e=>'<div class="evr" data-ev="'+e.d+'"><span class="evi">'+e.icon+'</span><span class="sp"><b>'+esc(e.title)+'</b><br><span class="sub">Tag '+e.d+'</span></span></div>').join('')+'</div>'+
+   '<div class="row mt" style="gap:8px"><button class="btn sp" id="evok">OK</button><button class="btn pri sp" id="evgo">Alle Nachrichten</button></div></div>';
+  document.body.appendChild(box);
+  $('#evok').onclick=()=>box.remove();$('#evgo').onclick=()=>{box.remove();go('markt');setTimeout(()=>{const n=$('#news');if(n)n.scrollIntoView({behavior:'smooth'});},100);};
+  box.addEventListener('click',ev=>{if(ev.target===box)box.remove();const r=ev.target.closest('[data-ev]');if(r){box.remove();EVQ=[eventsOn(+r.dataset.ev)];nextEvent();}});
+}
+function checkEvents(initial){
+  const cur=dayOf(now());let seen=+store.get(EVSEEN);if(!isFinite(seen)||!seen)seen=cur-1;
+  if(seen>=cur)return;
+  const list=recentEvents(Math.max(seen+1,cur-36,EVT_START),cur).reverse();
+  store.set(EVSEEN,cur);
+  if(!list.length)return;
+  showEvents(list);
+  if(document.hidden){const big=list.filter(e=>e.kind==='crash'||e.kind==='boom').pop();if(big)showNotif(big.icon+' '+big.title,big.text,big.boom?big.boom.sym:'WELT');}
+}
+function newsHtml(list,withEff){
+  if(!list.length)return'<div class="empty"><div class="e">📰</div>Noch keine Nachrichten.</div>';
+  return'<div class="list">'+list.map(e=>{const eff=effList(e);return'<div class="li" data-ev="'+e.d+'"><div class="av">'+e.icon+'</div><div class="sp"><div class="nm" style="white-space:normal">'+esc(e.title)+'</div><div class="sub">Tag '+e.d+' · '+esc(e.text)+'</div></div>'+(withEff&&eff[0]?'<b class="'+(eff[0].f>=0?'up':'down')+'">'+(eff[0].boom?'×'+fmtN(eff[0].f+1,1):fmtP(eff[0].f))+'</b>':'')+'</div>';}).join('')+'</div>';
+}
+
 /* ================================================================ Profil */
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if(S.view==='profil')renderView();});
@@ -1129,6 +1304,8 @@ function viewProfil(){
    '</div><div class="grid" style="align-content:start"><div class="card"><h3>So funktioniert Kursheld</h3>'+
    '<details class="acc"><summary>⏱️ Die Zeit</summary><p>Ein Spieltag dauert 5 echte Minuten. 360 Spieltage sind ein Spieljahr – also etwa 30 echte Stunden. Die Börse läuft immer weiter, auch wenn die App zu ist.</p></details>'+
    '<details class="acc"><summary>📈 Die Kurse</summary><p>Alle Firmen sind ausgedacht. Die Kurse sind zufällig, aber für alle Spieler gleich. Auf lange Sicht steigen die meisten Anlagen – mit Rückschlägen und manchmal einem Börsenbeben.</p></details>'+
+   '<details class="acc"><summary>📰 Ereignisse & Booms</summary><p>Ab und zu passieren Ereignisse: gute oder schlechte Nachrichten über einzelne Firmen oder ganze Branchen, Kursfeuerwerke, Schwarze Tage – und selten ein Börsencrash. Ganz selten gibt es einen Mega-Boom, bei dem sich eine Aktie verdoppelt oder mehr. Danach fällt sie innerhalb weniger Spieltage wieder auf ihren normalen Kurs zurück.</p></details>'+
+   '<details class="acc"><summary>💸 Dividenden</summary><p>Manche Aktien und ETFs zahlen alle '+DIV_EVERY+' Spieltage einen Teil ihres Gewinns an dich aus. Das Geld kommt automatisch zu deinem Bargeld.</p></details>'+
    '<details class="acc"><summary>💶 Gebühren & Zinsen</summary><p>Jeder Kauf und Verkauf kostet 1 € Gebühr. Das Tagesgeld bringt '+fmtN(SAV_RATE*100,1)+' % Zinsen pro Spieljahr und kostet nichts.</p></details>'+
    '<details class="acc"><summary>📚 Geld mit Vokabeln</summary><p>Jede richtige Antwort bringt 20 €, höchstens 2.000 € pro echtem Kalendertag. Jede Vokabel zahlt höchstens 3× pro Tag.</p></details>'+
    '<details class="acc"><summary>⚠️ Wichtig</summary><p>Kursheld ist ein Lernspiel mit Spielgeld. Es gibt keine echten Käufe und keine Anlageempfehlungen.</p></details></div>'+
@@ -1167,7 +1344,7 @@ function renderWelcome(){
   }
   $('#app').innerHTML='<div class="welcome"><div class="wbox"><div class="mk">'+IC.logo+'</div><h1><span class="grad">Kursheld</span></h1><div class="mut">Der Börsen-Simulator mit Spielgeld. Lerne, wie Geldanlage funktioniert – ganz ohne Risiko.</div>'+feats+'<div class="card">'+form+'</div></div></div>';
 }
-function startGame(){renderShell();routeFromHash();setNav();renderView();}
+function startGame(){renderShell();routeFromHash();setNav();renderView();payDividends();setTimeout(()=>checkEvents(true),600);}
 function createLocal(){
   const n=($('#wname').value||'').trim();
   if(!unameOk(n)){WELCOME.err='Der Name braucht 3–16 Zeichen (Buchstaben, Zahlen, _ oder -).';return renderWelcome();}
@@ -1199,6 +1376,7 @@ document.addEventListener('click',e=>{
   const ap=e.target.closest('[data-apct]');if(ap){const symEl=$('#afSym');if(!symEl)return;const pc=+ap.dataset.apct,cur=price(symEl.value);S.ui.adir=pc>0?'above':'below';$$('[data-adir]').forEach(b=>b.classList.toggle('on',b.dataset.adir===S.ui.adir));const v=cur*(1+pc/100);$('#afPrice').value=fmtN(v,v>=1?2:4);return;}
   const ok_=e.target.closest('[data-okind]');if(ok_){const k=ok_.dataset.okind,K=OKIND[k];S.ui.okind=k;$$('[data-okind]').forEach(b=>b.classList.toggle('on',b===ok_));$('#ofHelp').textContent=K.help;$('#ofAmtL').textContent=K.side==='buy'?'Wie viel möchtest du kaufen? (€)':'Wie viel verkaufen? (€, leer = alles)';$('#ofAmt').placeholder=K.side==='buy'?'z. B. 500':'leer = alles verkaufen';return;}
   const op=e.target.closest('[data-opct]');if(op){const sy=$('#ofSym');if(!sy)return;const cur=price(sy.value),v=cur*(1+(+op.dataset.opct)/100);$('#ofPrice').value=fmtN(v,v>=1?2:4);return;}
+  const evl=e.target.closest('.li[data-ev]');if(evl&&!$('#evpop')){const ev_=eventsOn(+evl.dataset.ev);if(ev_){EVQ=[ev_];nextEvent();}return;}
   const qz=e.target.closest('[data-quiz]');if(qz)return startQuiz(qz.dataset.quiz);
   const qd=e.target.closest('[data-qdir]');if(qd&&Q){S.ui.qdir=Q.dir=qd.dataset.qdir;if(!Q.answered){nextQ();}return renderView();}
   const ed=e.target.closest('[data-edit]');if(ed){const l=ST.vocab.lists.find(x=>x.id===ed.dataset.edit);if(l)openEditor({id:l.id,name:l.name,rows:l.items.map(x=>Object.assign({},x)),img:null});return;}
@@ -1253,11 +1431,11 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('change',e=>{if(e.target.id==='photo'||e.target.id==='photo2'){const f=e.target.files&&e.target.files[0];e.target.value='';handlePhoto(f);}});
 window.addEventListener('hashchange',()=>{if(!ST)return;const prev=S.view+':'+S.arg;routeFromHash();if(S.view+':'+S.arg!==prev){setNav();renderView();}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&S.mode==='online'&&ST)saveRemote();if(!document.hidden){document.title='Kursheld – Börsen-Simulator';if(ST){checkAlerts();checkOrders();}checkUpdate(false);}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&S.mode==='online'&&ST)saveRemote();if(!document.hidden){document.title='Kursheld – Börsen-Simulator';if(ST){checkEvents(false);payDividends();checkAlerts();checkOrders();}checkUpdate(false);}});
 
 
 /* ================================================================ Updates (ohne Neuinstallation) */
-const VERSION='2026-11-27.2';
+const VERSION='2026-11-27.3';
 let updAsked=false;
 async function remoteVersion(){
   try{const r=await fetch('index.html',{cache:'no-store'});if(!r.ok)return null;const tx=await r.text();const m=tx.match(/const VERSION='([^']+)'/);return m?m[1]:null;}catch(_){return null;}
@@ -1302,7 +1480,7 @@ async function boot(){
     else renderWelcome();
   }
 }
-window.__kh={S,get ST(){return ST;},priceAt,worth,worthHistory,parsePairs,check,ASSETS,dayOf,closeP};
+window.__kh={S,eventsOn,boomOff,get ST(){return ST;},priceAt,worth,worthHistory,parsePairs,check,ASSETS,dayOf,closeP};
 boot();
 })();
 </script>

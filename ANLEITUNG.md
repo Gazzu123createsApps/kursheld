@@ -4,7 +4,7 @@ Kursheld ist ein Börsen-Simulator mit Spielgeld. Er läuft im Browser und läss
 
 - 10.000 € Startkapital für jedes neue Konto
 - 1 Spieltag = 5 echte Minuten, 1 Spieljahr = 360 Spieltage (≈ 30 Stunden)
-- 29 ausgedachte Anlagen: ETFs, Aktien, Anleihen, Rohstoffe (Gold, Öl), Krypto, dazu Tagesgeld
+- 47 ausgedachte Anlagen, viele davon mit Dividende: ETFs, Aktien, Anleihen, Rohstoffe (Gold, Öl), Krypto, dazu Tagesgeld
 - Kurs-Wecker: Benachrichtigung, wenn ein Kurs einen Wert über- oder unterschreitet
 - Limit-Orders: automatisch kaufen oder verkaufen, wenn ein Kurs deinen Wert erreicht
 - Vokabeln abfotografieren und abfragen lassen: 20 € pro richtiger Antwort, höchstens 2.000 € pro Kalendertag
@@ -104,3 +104,11 @@ Beim Verkaufen kannst du einen Betrag eingeben oder das Feld leer lassen, dann w
 Neue Version einspielen: im GitHub-Repository **Add file → Upload files**, die neuen Dateien hochladen (gleiche Namen werden ersetzt) und **Commit changes**.
 
 Alle installierten Apps (Handy, Windows) prüfen regelmäßig, beim Öffnen und alle 10 Minuten, ob es eine neue Version gibt, und zeigen dann **„Neue Version verfügbar – Jetzt aktualisieren"**. Der Spielstand bleibt erhalten, es wird nichts zusätzlich installiert. Unter **Profil → Nach Update suchen** geht es auch von Hand. GitHub braucht nach dem Hochladen 1–2 Minuten.
+
+## Ereignisse, Crashs und Booms
+
+Etwa an jedem vierten Spieltag passiert etwas: Nachrichten zu einzelnen Firmen, ganzen Branchen oder dem ganzen Markt. Sie erscheinen groß als Pop-up und unter **Markt → Börsen-Nachrichten**. Selten (etwa einmal pro Tag echter Zeit) gibt es einen **Börsencrash**, bei dem fast alle Kurse um 10–30 % fallen. Ganz selten gibt es einen **Mega-Boom**: Eine Aktie oder Kryptowährung verdoppelt sich oder mehr und fällt dann innerhalb von 3–5 Spieltagen wieder auf ihren normalen Kurs. Die Ereignisse sind für alle Spieler gleich.
+
+## Dividenden
+
+Anlagen mit 💸 zahlen alle 30 Spieltage (≈ 2,5 Stunden) Dividende. Das Geld kommt automatisch zum Bargeld – auch nachträglich, wenn die App geschlossen war.
