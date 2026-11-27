@@ -195,6 +195,12 @@ select.inp{appearance:auto}
 .evlogo{animation:evfloat 3s ease-in-out infinite}@keyframes evfloat{50%{transform:translateY(-6px) rotate(-3deg)}}
 .evbadge{position:absolute;right:-14px;top:-12px;font-size:40px}
 .li:hover .av.lg .lgo{transform:scale(1.07) rotate(-3deg)}
+.search{position:relative;margin-bottom:10px}
+.search svg{position:absolute;left:14px;top:50%;width:18px;height:18px;transform:translateY(-50%);fill:none;stroke:var(--mut);stroke-width:2.2;stroke-linecap:round;pointer-events:none}
+.search .inp{padding-left:42px;padding-right:40px;font-size:15px}
+.search .inp::-webkit-search-cancel-button{display:none}
+.search .sx{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:0;background:rgba(148,163,184,.15);color:var(--mut);cursor:pointer}
+#mlist .li[hidden],#mnone[hidden],.search .sx[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -710,6 +716,7 @@ function renderView(){
 function afterRender(){
   if(S.view==='depot')drawWorthChart();
   if(S.view==='aktie')drawAssetChart();
+  if(S.view==='markt')applySearch();
   if(S.view==='rangliste'&&(!S.rank.list||now()-S.rank.at>60000))fetchRanking();
   if(S.view==='abfrage'){const i=$('#qin');if(i)setTimeout(()=>i.focus(),50);}
 }
@@ -865,13 +872,24 @@ function drawWorthChart(){
 }
 
 /* ================================================================ Ansicht: Markt */
+const fold=x=>String(x).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ß/g,'ss').replace(/ä/g,'a').replace(/ö/g,'o').replace(/ü/g,'u');
+function searchKey(a){return fold([a.name,a.sym,a.type,SECNAME[a.sec]||''].join(' '));}
+function applySearch(){
+  const q=fold((S.ui.search||'').trim()),words=q.split(/\s+/).filter(Boolean);let n=0;
+  $$('#mlist .li[data-q]').forEach(el=>{const k=el.dataset.q,nm=fold(el.querySelector('.nm').textContent);
+    const ok=!words.length||words.every(w=>k.includes(w));el.hidden=!ok;if(ok)n++;
+    el.style.order=words.length&&nm.startsWith(words[0])?-1:0;});
+  const no=$('#mnone');if(no)no.hidden=n>0||!$$('#mlist .li[data-q]').length;
+  const x=$('#msx');if(x)x.hidden=!q;
+}
 function viewMarkt(){
   const types=['Alle','Im Depot','Dividende','Wecker','ETF','Aktie','Krypto','Rohstoff','Anleihe'];
   const rows=ASSETS.filter(a=>S.ui.filter==='Alle'||(S.ui.filter==='Im Depot'?!!ST.holdings[a.sym]:S.ui.filter==='Dividende'?!!a.div:S.ui.filter==='Wecker'?(alertsFor(a.sym).some(x=>!x.fired)||ordersFor(a.sym).some(x=>!x.done)):a.type===S.ui.filter)).map(a=>{const i=IDX[a.sym],own=ST.holdings[a.sym],nal=alertsFor(a.sym).filter(x=>!x.fired).length+ordersFor(a.sym).filter(x=>!x.done).length;
-    return'<div class="li" data-asset="'+a.sym+'">'+logo(a)+'<div class="sp"><div class="nm">'+esc(a.name)+(own?' <span class="tag you">im Depot</span>':'')+(nal?' <span title="Wecker oder Order aktiv">🔔</span>':'')+'</div><div class="sub">'+a.type+(a.div?' · 💸 '+fmtN(a.div*100,1)+' %':'')+' · Risiko '+riskHtml(a.risk)+'</div></div>'+spark(i)+'<div class="r" style="min-width:96px"><div class="num" style="font-weight:700" data-l="price:'+a.sym+'"></div><div class="num" data-l="chg:'+a.sym+'"></div></div></div>';}).join('');
+    return'<div class="li" data-asset="'+a.sym+'" data-q="'+esc(searchKey(a))+'">'+logo(a)+'<div class="sp"><div class="nm">'+esc(a.name)+(own?' <span class="tag you">im Depot</span>':'')+(nal?' <span title="Wecker oder Order aktiv">🔔</span>':'')+'</div><div class="sub">'+a.type+(a.div?' · 💸 '+fmtN(a.div*100,1)+' %':'')+' · Risiko '+riskHtml(a.risk)+'</div></div>'+spark(i)+'<div class="r" style="min-width:96px"><div class="num" style="font-weight:700" data-l="price:'+a.sym+'"></div><div class="num" data-l="chg:'+a.sym+'"></div></div></div>';}).join('');
   return'<div class="pageh"><h2>Markt</h2><span class="sp"></span><button class="btn sm" data-go="wecker">🔔 Wecker &amp; Orders</button></div>'+
+   '<div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input class="inp" id="msearch" type="search" placeholder="Suchen, z. B. Gold, Bank, Krypto …" autocomplete="off" value="'+esc(S.ui.search||'')+'"><button class="sx" id="msx" title="Suche löschen"'+(S.ui.search?'':' hidden')+'>✕</button></div>'+
    '<div class="seg" style="margin-bottom:12px;overflow:auto">'+types.map(t=>'<button class="'+(S.ui.filter===t?'on':'')+'" data-filter="'+t+'">'+t+'</button>').join('')+'</div>'+
-   '<div class="card"><div class="list">'+(rows||'<div class="empty"><div class="e">🔍</div>Hier ist gerade nichts.</div>')+'</div></div>'+
+   '<div class="card"><div class="list" id="mlist">'+(rows||'<div class="empty"><div class="e">🔍</div>Hier ist gerade nichts.</div>')+'</div><div class="empty" id="mnone" hidden><div class="e">🔍</div>Keine Anlage gefunden.<br><span class="sub">Probier einen anderen Namen oder stelle den Filter auf „Alle“.</span></div></div>'+
    '<div class="card mt" id="news"><h3>📰 Börsen-Nachrichten</h3>'+newsHtml(recentEvents(dayOf(now())-60,dayOf(now())).slice(0,15),true)+'</div>'+
    '<div class="card mt"><h3>So funktioniert die Börse hier</h3><div class="sub" style="font-size:14px">Ein Spieltag dauert 5 echte Minuten, ein Spieljahr 360 Spieltage (30 Stunden). Die Kurse sind für alle Spieler gleich und laufen weiter, auch wenn die App geschlossen ist. Jede Order kostet '+fmtE(FEE,0)+' Gebühr. Alle Firmen sind ausgedacht, alles ist Spielgeld.</div></div>';
 }
@@ -1487,6 +1505,7 @@ document.addEventListener('click',e=>{
   const ok_=e.target.closest('[data-okind]');if(ok_){const k=ok_.dataset.okind,K=OKIND[k];S.ui.okind=k;$$('[data-okind]').forEach(b=>b.classList.toggle('on',b===ok_));$('#ofHelp').textContent=K.help;$('#ofAmtL').textContent=K.side==='buy'?'Wie viel möchtest du kaufen? (€)':'Wie viel verkaufen? (€, leer = alles)';$('#ofAmt').placeholder=K.side==='buy'?'z. B. 500':'leer = alles verkaufen';return;}
   const op=e.target.closest('[data-opct]');if(op){const sy=$('#ofSym');if(!sy)return;const cur=price(sy.value),v=cur*(1+(+op.dataset.opct)/100);$('#ofPrice').value=fmtN(v,v>=1?2:4);return;}
   const evl=e.target.closest('.li[data-ev]');if(evl&&!$('#evpop')){const ev_=eventsOn(+evl.dataset.ev);if(ev_){EVQ=[ev_];nextEvent();}return;}
+  if(e.target.closest('#msx')){S.ui.search='';const i=$('#msearch');if(i){i.value='';i.focus();}applySearch();return;}
   const qz=e.target.closest('[data-quiz]');if(qz)return startQuiz(qz.dataset.quiz);
   const qd=e.target.closest('[data-qdir]');if(qd&&Q){S.ui.qdir=Q.dir=qd.dataset.qdir;if(!Q.answered){nextQ();}return renderView();}
   const ed=e.target.closest('[data-edit]');if(ed){const l=ST.vocab.lists.find(x=>x.id===ed.dataset.edit);if(l)openEditor({id:l.id,name:l.name,rows:l.items.map(x=>Object.assign({},x)),img:null});return;}
@@ -1532,10 +1551,11 @@ document.addEventListener('click',e=>{
     case'login':return onlineAuth(false);
   }
 });
-document.addEventListener('input',e=>{if(e.target.id==='amt')tradeHint();});
+document.addEventListener('input',e=>{if(e.target.id==='amt')tradeHint();if(e.target.id==='msearch'){S.ui.search=e.target.value;applySearch();}});
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter')return;const id=e.target.id;
   if(id==='qin'){e.preventDefault();answerQ(false);}
+  else if(id==='msearch'){e.preventDefault();const f=$$('#mlist .li[data-q]').filter(x=>!x.hidden).sort((x,y)=>(+x.style.order||0)-(+y.style.order||0))[0];if(f){S.ui.trade='buy';go('aktie',f.dataset.asset);}}
   else if(id==='amt'){e.preventDefault();S.ui.trade==='buy'?doBuy():doSell(false);}
   else if(id==='wname'||id==='wpw'){e.preventDefault();const b=$('[data-act="createlocal"],[data-act="register"],[data-act="login"]');if(b)b.click();}
 });
@@ -1545,7 +1565,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&S.mode==='
 
 
 /* ================================================================ Updates (ohne Neuinstallation) */
-const VERSION='2026-11-27.5';
+const VERSION='2026-11-27.6';
 let updAsked=false;
 async function remoteVersion(){
   try{const r=await fetch('index.html',{cache:'no-store'});if(!r.ok)return null;const tx=await r.text();const m=tx.match(/const VERSION='([^']+)'/);return m?m[1]:null;}catch(_){return null;}
