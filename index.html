@@ -185,6 +185,16 @@ select.inp{appearance:auto}
 @keyframes evin{from{opacity:0}}@keyframes evpop{from{transform:scale(.6);opacity:0}}
 @keyframes evbounce{50%{transform:translateY(-6px) scale(1.06)}}
 @keyframes shake{20%,60%{transform:translateX(-10px) rotate(-1deg)}40%,80%{transform:translateX(10px) rotate(1deg)}}
+.av.lg{background:none!important;padding:0;overflow:visible}
+.av.lg .lgo{width:100%;height:100%;display:block;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.av.lg.big{width:60px;height:60px}
+.av.lg{width:44px;height:44px}
+.evr .av.lg{width:30px;height:30px}
+.evlogo{position:relative;width:96px;height:96px;margin:0 auto 10px}
+.evlogo .lgo{width:100%;height:100%;filter:drop-shadow(0 14px 34px rgba(0,0,0,.6))}
+.evlogo{animation:evfloat 3s ease-in-out infinite}@keyframes evfloat{50%{transform:translateY(-6px) rotate(-3deg)}}
+.evbadge{position:absolute;right:-14px;top:-12px;font-size:40px}
+.li:hover .av.lg .lgo{transform:scale(1.07) rotate(-3deg)}
 </style>
 </head>
 <body>
@@ -295,6 +305,106 @@ function h32(a,b,c){
 }
 function gauss(a,b,c){const u=Math.max(1e-12,h32(a,b,c)),v=h32(a+77,b,c+7919);return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 
+/* ================================================================ Eigene Logos */
+const GL={
+ WELT:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c-3 3.2-3 13.8 0 17M12 3.5c3 3.2 3 13.8 0 17"/>',
+ EURO:'<path d="M5 20V10l3-2v-4h2v3h4V4h2v4l3 2v10z"/><path d="M10 20v-4a2 2 0 0 1 4 0v4"/>',
+ ANL:'<path d="M3 9l9-5 9 5z"/><path d="M5 9v9M9.5 9v9M14.5 9v9M19 9v9M3 20h18"/>',
+ SCHOKO:'<rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M5 9h14M5 14.5h14M12 3.5v17"/><path d="M15 20.5l4-4" opacity=".6"/>',
+ MEDI:'<rect x="2.8" y="8.6" width="18.4" height="6.8" rx="3.4" transform="rotate(-40 12 12)"/><path d="M9.8 9.4l4.4 5.2" transform="rotate(0)"/>',
+ GRUEN:'<path d="M12 11v10M9 21h6"/><circle cx="12" cy="9.5" r="1.4" class="f"/><path d="M12 9.5L12.6 2.5M12 9.5l6 3.3M12 9.5l-6.2 3"/>',
+ NOVA:'<rect x="5" y="7" width="14" height="11" rx="3"/><circle cx="9.5" cy="12.5" r="1.3" class="f"/><circle cx="14.5" cy="12.5" r="1.3" class="f"/><path d="M12 7V4M10 4h4M3 12h2M19 12h2"/>',
+ PIXEL:'<path d="M7 8h10a4 4 0 0 1 4 4.5l-.6 3.4a2.2 2.2 0 0 1-3.9.9L15 15H9l-1.5 1.8a2.2 2.2 0 0 1-3.9-.9L3 12.5A4 4 0 0 1 7 8z"/><path d="M7.5 10.5v3M6 12h3"/><circle cx="15.5" cy="11" r=".9" class="f"/><circle cx="17.3" cy="13" r=".9" class="f"/>',
+ SPACE:'<path d="M12 2.5c3.5 2.5 5 6.5 4 11l-2 3h-4l-2-3c-1-4.5.5-8.5 4-11z"/><circle cx="12" cy="9.5" r="1.8"/><path d="M8 13.5l-3 2.5 1 3 3-2M16 13.5l3 2.5-1 3-3-2M11 19.5l1 2.5 1-2.5"/>',
+ BYTE:'<circle cx="12" cy="12" r="8.5"/><path d="M9.5 7.5v9M9.5 7.5h3.5a2.2 2.2 0 0 1 0 4.4H9.5h4a2.3 2.3 0 0 1 0 4.6h-4M11 6v1.5M13 6v1.5M11 16.5V18M13 16.5V18"/>',
+ TECHE:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="M7 12l3-3 2.5 2 4-4"/>',
+ SCHWELLE:'<path d="M3 19l6-8 4 4 8-10"/><path d="M15 5h6v6"/><path d="M3 21h18" opacity=".6"/>',
+ DIVI:'<ellipse cx="12" cy="6" rx="6.5" ry="2.5"/><path d="M5.5 6v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5V6M5.5 10v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4M5.5 14v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/>',
+ IMMO:'<path d="M4 21V5l8-2v18M12 8l8 2v11M3 21h18"/><path d="M7 8h2M7 12h2M7 16h2M15 13h2M15 17h2"/>',
+ GOLD:'<path d="M3 20l2-5h6l2 5zM11 20l2-5h6l2 5zM7 15l2-5h6l2 5z"/>',
+ OEL:'<path d="M12 3c3.5 4.5 6 7.8 6 11a6 6 0 0 1-12 0c0-3.2 2.5-6.5 6-11z"/><path d="M9 14.5a3 3 0 0 0 3 3" opacity=".7"/>',
+ STAAT:'<path d="M12 3l7.5 3v5.5c0 4.5-3.2 8-7.5 9.5-4.3-1.5-7.5-5-7.5-9.5V6z"/><path d="M9 12l2 2 4-4"/>',
+ UNTER:'<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 17l6-6"/><circle cx="9.5" cy="11.5" r="1"/><circle cx="14.5" cy="16.5" r="1"/>',
+ WASSER:'<path d="M12 3c3.5 4.5 6 7.8 6 11a6 6 0 0 1-12 0c0-3.2 2.5-6.5 6-11z"/><path d="M8 15c1.3-1 2.7-1 4 0s2.7 1 4 0"/>',
+ BURGER:'<path d="M4.5 10a7.5 6 0 0 1 15 0z"/><path d="M3.5 13.5c1.4 0 1.4 1 2.8 1s1.4-1 2.8-1 1.4 1 2.9 1 1.4-1 2.8-1 1.4 1 2.8 1 1.4-1 2.9-1"/><path d="M4.5 17h15v1a2.5 2.5 0 0 1-2.5 2.5H7A2.5 2.5 0 0 1 4.5 18z"/><path d="M9 7h.01M12 6h.01M15 7h.01"/>',
+ SPORT:'<path d="M3 16.5c0-1.5 1-2.5 2.5-2.5h3l3-6 3.5 2-1 2c2.5.5 6 1.5 6 3.5V18H3z"/><path d="M3 18h18M10 11l2 1M9 13l2 1"/>',
+ AUTO:'<path d="M3 16v-3l2.5-5h13l2.5 5v3z"/><path d="M3 13h18"/><circle cx="7.5" cy="17" r="2" class="f"/><circle cx="16.5" cy="17" r="2" class="f"/>',
+ BANK:'<rect x="4" y="5" width="16" height="15" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M12 9v1M12 15v1M8.5 12.5h1M14.5 12.5h1M7 20v1.5M17 20v1.5"/>',
+ STREAM:'<rect x="3" y="5" width="18" height="13" rx="3"/><path d="M10 9l5 2.5-5 2.5z" class="f"/><path d="M9 21h6"/>',
+ ROBO:'<path d="M4 21h8M8 21v-3l-2-5 6-5"/><circle cx="6" cy="13" r="1.5"/><circle cx="12" cy="8" r="1.5"/><path d="M12 8l5-2M17 6l3 1M17 6l2 3"/>',
+ FLUG:'<path d="M21 4.5c-.8-.8-2.3-.6-3.3.4L14 8.6 5.5 6 4 7.5l7 4-3.2 3.3-2.6-.3-1.2 1.2 3 1.4 1.4 3 1.2-1.2-.3-2.6 3.3-3.2 4 7 1.5-1.5-2.6-8.5 3.7-3.7c1-1 1.2-2.5.4-3.3z"/>',
+ BIO:'<path d="M8 3c0 6 8 6 8 9s-8 3-8 9M16 3c0 6-8 6-8 9s8 3 8 9"/><path d="M9 6h6M9.5 18h5M10.5 9h3M10.5 15h3"/>',
+ ETHER:'<path d="M12 2.5l6 9.5-6 3.5-6-3.5z"/><path d="M6 13.5l6 8 6-8-6 3.5z"/>',
+ MEME:'<circle cx="12" cy="13" r="8"/><circle cx="8" cy="6.5" r="2.5"/><circle cx="16" cy="6.5" r="2.5"/><circle cx="8" cy="6.5" r=".8" class="f"/><circle cx="16" cy="6.5" r=".8" class="f"/><path d="M7.5 14.5c2.5 2.5 6.5 2.5 9 0"/>',
+ TELE:'<circle cx="12" cy="12" r="1.6" class="f"/><path d="M8.5 15.5a5 5 0 0 1 0-7M15.5 8.5a5 5 0 0 1 0 7M5.6 18.4a9 9 0 0 1 0-12.8M18.4 5.6a9 9 0 0 1 0 12.8"/>',
+ VERSI:'<path d="M3 12a9 9 0 0 1 18 0c-1.5-1.3-3-1.3-4.5 0-1.5-1.3-3-1.3-4.5 0-1.5-1.3-3-1.3-4.5 0-1.5-1.3-3-1.3-4.5 0z"/><path d="M12 12v6.5a2 2 0 0 1-4 0M12 3v-.5"/>',
+ STADTW:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.4.3.5.8.5 1.3V16h6v-.8c0-.5.2-1 .5-1.3A6 6 0 0 0 12 3z"/><path d="M12 7l-1.5 3h3L12 13"/>',
+ NUDEL:'<path d="M7 3v5a2 2 0 0 0 4 0V3M9 3v18"/><path d="M14 9c2-1 5-1 5 2s-5 2-5 4 3 2 5 1M15 20c1.5.5 3 .3 4-.5"/>',
+ PETRO:'<path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M4 10h10"/><path d="M14 8l3 2v7.5a1.5 1.5 0 0 0 3 0V9l-2-3"/>',
+ CHIP:'<rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" class="f"/><path d="M9 3v3M12 3v3M15 3v3M9 18v3M12 18v3M15 18v3M3 9h3M3 12h3M3 15h3M18 9h3M18 12h3M18 15h3"/>',
+ CLOUD:'<path d="M7 18a4.5 4.5 0 0 1-.5-9 6 6 0 0 1 11.5 1.5 3.8 3.8 0 0 1 0 7.5z"/><path d="M10 14.5l2-2 2 2M12 12.5V17"/>',
+ MODE:'<path d="M8.5 3.5L3 6.5l2 4 2-1V21h10V9.5l2 1 2-4-5.5-3c-.5 1.5-2 2.5-3.5 2.5s-3-1-3.5-2.5z"/>',
+ TOYS:'<rect x="3" y="10" width="18" height="10" rx="1.5"/><path d="M5.5 10V7.5h4V10M14.5 10V7.5h4V10"/><path d="M3 15h18" opacity=".5"/>',
+ PAKET:'<path d="M12 2.5l8.5 4.5v10L12 21.5 3.5 17V7z"/><path d="M3.5 7L12 11.5 20.5 7M12 11.5v10M7.8 4.8l8.5 4.6"/>',
+ BAHN:'<rect x="5" y="3" width="14" height="14" rx="3.5"/><path d="M5 10h14"/><circle cx="8.8" cy="13.5" r="1" class="f"/><circle cx="15.2" cy="13.5" r="1" class="f"/><path d="M8 17l-2.5 4M16 17l2.5 4M10 6h4"/>',
+ WOHN:'<path d="M2.5 11.5L8 7l5.5 4.5V20h-11zM13.5 9L17 6l4.5 3.7V20h-8"/><path d="M6.5 20v-4h3v4M16.5 12.5h2M16.5 15.5h2"/>',
+ VOLT:'<path d="M13.5 2.5L5 13.5h6l-1.5 8L18 10.5h-6z"/>',
+ SONNE:'<circle cx="12" cy="12" r="4" class="f"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>',
+ HEIMAT:'<path d="M5 21V3"/><path d="M5 4h13v4H5" class="f" opacity=".95"/><path d="M5 8h13v4H5z"/><path d="M5 12h13v4H5" class="f" opacity=".45"/>',
+ SILBER:'<path d="M3 18l3-8h12l3 8z"/><path d="M6 10l1.5-3h9L18 10"/><path d="M8 14h3" opacity=".7"/>',
+ KAFFEE:'<path d="M4 9h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M3 21.5h14"/><path d="M8 2.5c-1 1.2 1 1.8 0 3.2M12 2.5c-1 1.2 1 1.8 0 3.2"/>',
+ LUNA:'<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/><path d="M16 3l.6 1.6L18.2 5l-1.6.6L16 7.2l-.6-1.6L13.8 5l1.6-.4zM20 8.5l.4 1 1 .4-1 .4-.4 1-.4-1-1-.4 1-.4z" class="f"/>'
+};
+function hx2hsl(h){const n=parseInt(h.slice(1),16);let r=(n>>16&255)/255,g=(n>>8&255)/255,b=(n&255)/255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let H=0,S=0;const L=(mx+mn)/2;
+  if(mx!==mn){const d=mx-mn;S=L>.5?d/(2-mx-mn):d/(mx+mn);H=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;H*=60;}return[H,S,L];}
+const hsl=(h,s,l)=>'hsl('+((h%360+360)%360).toFixed(0)+','+(Math.max(0,Math.min(1,s))*100).toFixed(0)+'%,'+(Math.max(0,Math.min(1,l))*100).toFixed(0)+'%)';
+const LOGO_CACHE={};
+function logoSvg(a){
+  if(LOGO_CACHE[a.sym])return LOGO_CACHE[a.sym];
+  let[H,S,L]=hx2hsl(a.color);if(S<.15){S=.12;}const grey=S<.15;
+  const sat=grey?.1:Math.max(.55,S),c1=hsl(H-12,sat,Math.min(.62,L+.08)),c2=hsl(H+28,sat*.95,.34),c3=hsl(H-32,grey?.1:.85,.5),c4=hsl(H+38,grey?.05:.9,.66),dk=hsl(H+20,grey?.1:.6,.13),tint=hsl(H,grey?.05:.9,.9);
+  const T=a.type;
+  // Grundform (96er Raster)
+  const sq='M48 4C84 4 92 12 92 48S84 92 48 92 4 84 4 48 12 4 48 4z';
+  const shape=T==='Krypto'?'M48 4a44 44 0 1 1 0 88 44 44 0 0 1 0-88z':T==='ETF'?'M48 3.5c3 0 5.5.9 8 2.3l25.5 14.8c5 2.9 8 8.2 8 14v27c0 5.8-3 11.1-8 14L56 90.2c-5 2.9-11 2.9-16 0L14.5 75.6c-5-2.9-8-8.2-8-14v-27c0-5.8 3-11.1 8-14L40 5.8c2.5-1.4 5-2.3 8-2.3z':sq;
+  let deco='';
+  if(T==='Aktie'){deco='<g opacity=".22" fill="none" stroke="#fff" stroke-width=".8">'+[18,28,38,48,58].map(r=>'<circle cx="96" cy="96" r="'+r+'"/>').join('')+'</g>';}
+  if(T==='ETF'){deco='<path d="M48 48L14.5 20.6 40 5.8c5-2.9 11-2.9 16 0l25.5 14.8z" fill="#fff" opacity=".16"/><path d="M48 48L6.5 34.6v27c0 5.8 3 11.1 8 14L40 90.2c2.5 1.4 5 2.1 8 2.1z" fill="#000" opacity=".14"/><path d="M48 48l41.5-13.4v27c0 5.8-3 11.1-8 14L56 90.2" fill="#000" opacity=".06"/>';}
+  if(T==='Krypto'){let t='';for(let k=0;k<48;k++){const an=k/48*Math.PI*2,x1=48+40*Math.cos(an),y1=48+40*Math.sin(an),x2=48+43.5*Math.cos(an),y2=48+43.5*Math.sin(an);t+='M'+x1.toFixed(1)+' '+y1.toFixed(1)+'L'+x2.toFixed(1)+' '+y2.toFixed(1);}
+    deco='<path d="'+t+'" stroke="#fff" stroke-opacity=".35" stroke-width="1.3"/><circle cx="48" cy="48" r="35" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="1.2"/><circle cx="48" cy="48" r="35" fill="url(#rg)" opacity=".5"/>';}
+  if(T==='Rohstoff'){let t='';for(let y=8;y<92;y+=3)t+='M0 '+y+'h96';deco='<path d="'+t+'" stroke="#fff" stroke-opacity=".07" stroke-width="1"/><path d="M-10 70L70-10h18L-10 88z" fill="#fff" opacity=".18"/><path d="M10 100L100 10v10L20 100z" fill="#fff" opacity=".1"/>';}
+  if(T==='Anleihe'){let t='';for(let k=0;k<9;k++){let d='M0 '+(14+k*9);for(let x=0;x<=96;x+=6)d+=' L'+x+' '+(14+k*9+Math.sin(x/9+k*.7)*3.2).toFixed(1);t+='<path d="'+d+'"/>';}deco='<g fill="none" stroke="#fff" stroke-opacity=".13" stroke-width=".8">'+t+'</g><path d="'+sq+'" transform="translate(48 48) scale(.86) translate(-48 -48)" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.2" stroke-dasharray="1.5 2"/>';}
+  const g=(GL[a.sym]||'<text x="12" y="16" text-anchor="middle" font-size="10" font-weight="900" stroke="none" fill="#fff">'+a.sym.slice(0,3)+'</text>');
+  const glyph=(stroke,fill,w)=>g.replace(/class="f"/g,'fill="'+fill+'"').replace(/<text /,'<text '+(fill?'':'')+' ').replace(/^/,'').replace(/<(path|circle|rect|ellipse)(?![^>]*fill=)/g,'<$1')+'';
+  const tf='translate(48 49) scale(2.45) translate(-12 -12)';
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><defs>'+
+   '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient>'+
+   '<radialGradient id="b1" cx=".15" cy=".1" r=".75"><stop offset="0" stop-color="'+c4+'" stop-opacity=".85"/><stop offset="1" stop-color="'+c4+'" stop-opacity="0"/></radialGradient>'+
+   '<radialGradient id="b2" cx=".95" cy=".95" r=".7"><stop offset="0" stop-color="'+c3+'" stop-opacity=".75"/><stop offset="1" stop-color="'+c3+'" stop-opacity="0"/></radialGradient>'+
+   '<radialGradient id="rg" cx=".35" cy=".25" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></radialGradient>'+
+   '<linearGradient id="sh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>'+
+   '<linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="'+tint+'"/></linearGradient>'+
+   '<clipPath id="cp"><path d="'+shape+'"/></clipPath>'+
+   '<filter id="gr" x="0" y="0" width="1" height="1"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="'+(IDX[a.sym]+3)+'"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .5 -.18"/></filter>'+
+   '<filter id="bl" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.6"/></filter>'+
+   '<filter id="ds" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="2.2" stdDeviation="1.6" flood-color="'+dk+'" flood-opacity=".75"/></filter>'+
+   '</defs>'+
+   '<g clip-path="url(#cp)"><rect width="96" height="96" fill="url(#bg)"/><rect width="96" height="96" fill="url(#b1)"/><rect width="96" height="96" fill="url(#b2)"/>'+deco+
+   '<rect width="96" height="96" filter="url(#gr)" opacity=".55"/>'+
+   '<ellipse cx="38" cy="10" rx="58" ry="30" fill="url(#sh)" opacity=".55"/></g>'+
+   '<path d="'+shape+'" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="1.4"/>'+
+   // Glow
+   '<g transform="'+tf+'" fill="none" stroke="'+c4+'" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#bl)" opacity=".9">'+glyph('', c4)+'</g>'+
+   // 3D-Kante
+   [3,2,1].map(k=>'<g transform="translate('+(k*.45)+' '+(k*.75)+') '+tf+'" fill="none" stroke="'+dk+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity="'+(0.35+k*.12)+'">'+glyph('',dk)+'</g>').join('')+
+   // Symbol
+   '<g transform="'+tf+'" fill="none" stroke="url(#gg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" filter="url(#ds)">'+glyph('','url(#gg)')+'</g>'+
+   '<g transform="translate(-.35 -.45) '+tf+'" fill="none" stroke="#fff" stroke-width=".7" stroke-linecap="round" stroke-linejoin="round" opacity=".55">'+glyph('','none')+'</g>'+
+   '</svg>';
+  return LOGO_CACHE[a.sym]='<img class="lgo" alt="" draggable="false" src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)+'">';
+}
+function logo(a,big){return'<div class="av lg'+(big?' big':'')+'">'+logoSvg(a)+'</div>';}
+
 /* ================================================================ Ereignisse & Booms (für alle Spieler gleich) */
 const EVT_START=Math.floor((Date.UTC(2026,10,27,17,0,0)-EPOCH)/DAY_MS);
 const DIV_EVERY=30;              // Dividende alle 30 Spieltage (= 2,5 echte Stunden)
@@ -339,7 +449,7 @@ function eventsOn(d){
     ev={kind:'up',icon:'🎉',title:'Kursfeuerwerk!',text:pick(['Die Zinsen sinken','Die Wirtschaft wächst stärker als gedacht','Gute Nachrichten aus aller Welt'],u(2))+' – fast alle Kurse steigen.'};
   }else if(r<0.026){ // Boom
     const c=ASSETS.filter(isStock),a=c[Math.floor(u(1)*c.length)],L=Math.log(2+u(3)*u(3)*2.5),dur=2+Math.floor(u(4)*3);
-    ev={kind:'boom',icon:'🚀',title:'MEGA-BOOM bei '+a.name+'!',text:pick(BOOM_WHY,u(2)).replace('{n}',a.name)+'. Der Kurs explodiert auf das '+fmtN(Math.exp(L),1)+'-Fache – doch solche Hypes halten meist nicht lange.',boom:{sym:a.sym,L,dur}};
+    ev={kind:'boom',icon:'🚀',sym:a.sym,title:'MEGA-BOOM bei '+a.name+'!',text:pick(BOOM_WHY,u(2)).replace('{n}',a.name)+'. Der Kurs explodiert auf das '+fmtN(Math.exp(L),1)+'-Fache – doch solche Hypes halten meist nicht lange.',boom:{sym:a.sym,L,dur}};
   }else if(r<0.13){ // Branche
     const secs=Object.keys(EVT_SEC).filter(k=>ASSETS.some(a=>a.sec===k)),sec=pick(secs,u(1)),up=u(2)<0.52,mag=(0.04+u(3)*0.1)*(up?1:-1);
     ASSETS.forEach((a,i)=>{if(a.sec===sec)J[a.sym]=mag*(0.7+0.6*u(10+i));});
@@ -347,7 +457,7 @@ function eventsOn(d){
   }else if(r<0.27){ // einzelne Firma
     const c=ASSETS.filter(a=>a.type==='Aktie'),a=c[Math.floor(u(1)*c.length)],up=u(2)<0.53,mag=(0.06+u(3)*0.14)*(up?1:-1);
     J[a.sym]=mag;
-    ev={kind:up?'co-up':'co-dn',icon:up?'🟢':'🔴',title:a.icon+' '+a.name,text:pick(EVT_CO[up?'up':'dn'],u(4)).replace('{n}',a.name)+'.'};
+    ev={kind:up?'co-up':'co-dn',icon:up?'🟢':'🔴',title:a.name,sym:a.sym,text:pick(EVT_CO[up?'up':'dn'],u(4)).replace('{n}',a.name)+'.'};
   }
   if(ev){ev.d=d;ev.J=J;}
   EVC.set(d,ev||null);return ev||null;
@@ -726,7 +836,7 @@ function viewDepot(){
   const t=now(),w=worth(ST,t),d=dayOf(t),rows=[],parts=[{l:'Bargeld',v:ST.cash,c:'#64748b'},{l:'Tagesgeld',v:savNow(ST.sav,d),c:'#fbbf24'}];
   Object.keys(ST.holdings).sort((a,b)=>ST.holdings[b].qty*price(b)-ST.holdings[a].qty*price(a)).forEach(s=>{
     const a=ASSETS[IDX[s]],h=ST.holdings[s];parts.push({l:a.name,v:h.qty*price(s),c:a.color});
-    rows.push('<div class="li" data-asset="'+s+'"><div class="av" style="background:'+hexA(a.color,.16)+'">'+a.icon+'</div><div class="sp"><div class="nm">'+esc(a.name)+'</div><div class="sub">'+fmtQ(h.qty)+' Stück · <span data-l="chg:'+s+'"></span> heute</div></div><div class="r"><div class="num" style="font-weight:700" data-l="hval:'+s+'"></div><div data-l="hpl:'+s+'"></div></div></div>');
+    rows.push('<div class="li" data-asset="'+s+'">'+logo(a)+'<div class="sp"><div class="nm">'+esc(a.name)+'</div><div class="sub">'+fmtQ(h.qty)+' Stück · <span data-l="chg:'+s+'"></span> heute</div></div><div class="r"><div class="num" style="font-weight:700" data-l="hval:'+s+'"></div><div data-l="hpl:'+s+'"></div></div></div>');
   });
   const leg=parts.filter(p=>p.v>0.005).map(p=>'<div class="row"><span class="dot" style="background:'+p.c+'"></span><span class="sp">'+esc(p.l)+'</span><span class="num mut">'+fmtN(p.v/w*100,1)+' %</span></div>').join('');
   const tip=TIPS[d%TIPS.length];
@@ -758,7 +868,7 @@ function drawWorthChart(){
 function viewMarkt(){
   const types=['Alle','Im Depot','Dividende','Wecker','ETF','Aktie','Krypto','Rohstoff','Anleihe'];
   const rows=ASSETS.filter(a=>S.ui.filter==='Alle'||(S.ui.filter==='Im Depot'?!!ST.holdings[a.sym]:S.ui.filter==='Dividende'?!!a.div:S.ui.filter==='Wecker'?(alertsFor(a.sym).some(x=>!x.fired)||ordersFor(a.sym).some(x=>!x.done)):a.type===S.ui.filter)).map(a=>{const i=IDX[a.sym],own=ST.holdings[a.sym],nal=alertsFor(a.sym).filter(x=>!x.fired).length+ordersFor(a.sym).filter(x=>!x.done).length;
-    return'<div class="li" data-asset="'+a.sym+'"><div class="av" style="background:'+hexA(a.color,.16)+'">'+a.icon+'</div><div class="sp"><div class="nm">'+esc(a.name)+(own?' <span class="tag you">im Depot</span>':'')+(nal?' <span title="Wecker oder Order aktiv">🔔</span>':'')+'</div><div class="sub">'+a.type+(a.div?' · 💸 '+fmtN(a.div*100,1)+' %':'')+' · Risiko '+riskHtml(a.risk)+'</div></div>'+spark(i)+'<div class="r" style="min-width:96px"><div class="num" style="font-weight:700" data-l="price:'+a.sym+'"></div><div class="num" data-l="chg:'+a.sym+'"></div></div></div>';}).join('');
+    return'<div class="li" data-asset="'+a.sym+'">'+logo(a)+'<div class="sp"><div class="nm">'+esc(a.name)+(own?' <span class="tag you">im Depot</span>':'')+(nal?' <span title="Wecker oder Order aktiv">🔔</span>':'')+'</div><div class="sub">'+a.type+(a.div?' · 💸 '+fmtN(a.div*100,1)+' %':'')+' · Risiko '+riskHtml(a.risk)+'</div></div>'+spark(i)+'<div class="r" style="min-width:96px"><div class="num" style="font-weight:700" data-l="price:'+a.sym+'"></div><div class="num" data-l="chg:'+a.sym+'"></div></div></div>';}).join('');
   return'<div class="pageh"><h2>Markt</h2><span class="sp"></span><button class="btn sm" data-go="wecker">🔔 Wecker &amp; Orders</button></div>'+
    '<div class="seg" style="margin-bottom:12px;overflow:auto">'+types.map(t=>'<button class="'+(S.ui.filter===t?'on':'')+'" data-filter="'+t+'">'+t+'</button>').join('')+'</div>'+
    '<div class="card"><div class="list">'+(rows||'<div class="empty"><div class="e">🔍</div>Hier ist gerade nichts.</div>')+'</div></div>'+
@@ -772,7 +882,7 @@ function viewAktie(){
   let hi=closeP(i,d-1),lo=hi;for(let j=0;j<=fr;j++){const v=Math.exp(p[j]);hi=Math.max(hi,v);lo=Math.min(lo,v);}
   const y1=priceAt(i,t)/closeP(i,d-YEAR)-1;
   const buy=S.ui.trade==='buy';
-  return'<div class="pageh"><button class="back" data-go="markt">'+IC.back+'</button><div class="av" style="background:'+hexA(a.color,.16)+'">'+a.icon+'</div><div class="sp"><h2>'+esc(a.name)+'</h2><div class="sub">'+a.type+' · Risiko '+riskHtml(a.risk)+'</div></div></div>'+
+  return'<div class="pageh"><button class="back" data-go="markt">'+IC.back+'</button>'+logo(a,true)+'<div class="sp"><h2>'+esc(a.name)+'</h2><div class="sub">'+a.type+' · Risiko '+riskHtml(a.risk)+'</div></div></div>'+
    '<div class="grid g2"><div class="grid" style="align-content:start">'+
     '<div class="card"><div class="row" style="align-items:flex-end;flex-wrap:wrap"><div class="sp"><div class="big num" data-l="price:'+s+'"></div><span class="chip num" data-l="chg:'+s+'"></span> <span class="sub">heute</span></div>'+
     '<div class="seg" style="width:230px">'+['1T','7T','30T','1J'].map(r=>'<button class="'+(S.ui.range===r?'on':'')+'" data-range="'+r+'">'+r+'</button>').join('')+'</div></div>'+
@@ -1106,7 +1216,7 @@ function alertForm(fixedSym){
 function alertRow(al,withAsset){
   const a=ASSETS[IDX[al.sym]];if(!a)return'';const cur=price(al.sym),up=al.dir==='above',dist=al.price/cur-1;
   const state=al.fired?'<span class="tag" style="background:rgba(34,197,94,.16);color:#86efac">ausgelöst vor '+agoStr(now()-al.fired.t)+'</span>':'<span class="sub num">noch '+fmtP(Math.abs(dist)).replace(/^[+−]/,'')+' '+(up?'bis oben':'bis unten')+'</span>';
-  return'<div class="li" style="cursor:default"><div class="av" style="background:'+hexA(a.color,.16)+'">'+a.icon+'</div><div class="sp" style="min-width:0"><div class="nm" style="white-space:normal">'+(withAsset?esc(a.name)+'<br>':'')+(up?'📈 über ':'📉 unter ')+fmtPr(al.price)+'</div><div class="sub">Jetzt '+fmtPr(cur)+'</div><div style="margin-top:3px">'+state+'</div></div>'+
+  return'<div class="li" style="cursor:default">'+logo(a)+'<div class="sp" style="min-width:0"><div class="nm" style="white-space:normal">'+(withAsset?esc(a.name)+'<br>':'')+(up?'📈 über ':'📉 unter ')+fmtPr(al.price)+'</div><div class="sub">Jetzt '+fmtPr(cur)+'</div><div style="margin-top:3px">'+state+'</div></div>'+
    (al.fired?'<button class="btn sm" data-act="rearm" data-id="'+al.id+'" title="Wecker neu stellen">↻</button> ':'')+'<button class="btn sm" data-act="delalert" data-id="'+al.id+'" title="Löschen">✕</button></div>';
 }
 function notifCard(){
@@ -1230,7 +1340,7 @@ function orderRow(o,withAsset){
   const cond=(K.below?'bei Kurs ≤ ':'bei Kurs ≥ ')+fmtPr(o.price);
   const st=o.done?(o.done.ok?'<span class="tag" style="background:rgba(34,197,94,.16);color:#86efac">✅ ausgeführt vor '+agoStr(now()-o.done.t)+'</span><div class="sub">'+esc(o.done.msg)+'</div>':'<span class="tag" style="background:rgba(244,63,94,.16);color:#fda4af">⚠️ nicht ausgeführt</span><div class="sub">'+esc(o.done.msg)+'</div>'):
     '<span class="sub num">Jetzt '+fmtPr(cur)+' · noch '+fmtN(Math.abs(o.price/cur-1)*100,1)+' % '+(K.below?'bis unten':'bis oben')+'</span>';
-  return'<div class="li" style="cursor:default"><div class="av" style="background:'+hexA(a.color,.16)+'">'+a.icon+'</div><div class="sp" style="min-width:0"><div class="nm" style="white-space:normal">'+(withAsset?esc(a.name)+'<br>':'')+K.ic+' '+what+'<br>'+cond+'</div><div style="margin-top:3px">'+st+'</div></div>'+
+  return'<div class="li" style="cursor:default">'+logo(a)+'<div class="sp" style="min-width:0"><div class="nm" style="white-space:normal">'+(withAsset?esc(a.name)+'<br>':'')+K.ic+' '+what+'<br>'+cond+'</div><div style="margin-top:3px">'+st+'</div></div>'+
    '<button class="btn sm" data-act="delorder" data-id="'+o.id+'" title="Löschen">✕</button></div>';
 }
 
@@ -1243,7 +1353,7 @@ function effList(e){
   arr.sort((x,y)=>(y.boom?1:0)-(x.boom?1:0)||(ST&&ST.holdings[y.a.sym]?1:0)-(ST&&ST.holdings[x.a.sym]?1:0)||Math.abs(y.f)-Math.abs(x.f));
   return arr;
 }
-function effChip(x){return'<div class="evr" data-asset="'+x.a.sym+'"><span class="evi">'+x.a.icon+'</span><span class="sp">'+esc(x.a.name)+(ST&&ST.holdings[x.a.sym]?' <span class="tag you">im Depot</span>':'')+'</span><b class="'+(x.f>=0?'up':'down')+'">'+(x.boom?'×'+fmtN(x.f+1,1):fmtP(x.f))+'</b></div>';}
+function effChip(x){return'<div class="evr" data-asset="'+x.a.sym+'">'+logo(x.a)+'<span class="sp">'+esc(x.a.name)+(ST&&ST.holdings[x.a.sym]?' <span class="tag you">im Depot</span>':'')+'</span><b class="'+(x.f>=0?'up':'down')+'">'+(x.boom?'×'+fmtN(x.f+1,1):fmtP(x.f))+'</b></div>';}
 function evCls(e){return e.kind==='crash'||e.kind==='down'?'bad':e.kind==='boom'||e.kind==='up'?'good':e.kind.endsWith('dn')?'bad2':'good2';}
 let EVQ=[];
 function showEvents(list){
@@ -1254,7 +1364,7 @@ function nextEvent(){
   if(EVQ.length>3){const all=EVQ;EVQ=[];return evSummary(all);}
   const e=EVQ.shift(),eff=effList(e),cur=dayOf(now()),age=cur-e.d;
   const box=document.createElement('div');box.id='evpop';box.className='evpop '+evCls(e)+(e.kind==='crash'?' shake':'');
-  box.innerHTML='<div class="evcard"><div class="evbig">'+e.icon+'</div><div class="evtag">'+(e.kind==='crash'?'EILMELDUNG':e.kind==='boom'?'SENSATION':'BÖRSEN-NEWS')+' · Tag '+e.d+(age>0?' (vor '+agoStr(age*DAY_MS)+')':'')+'</div><h2>'+esc(e.title)+'</h2><p>'+esc(e.text)+'</p>'+
+  box.innerHTML='<div class="evcard">'+(e.sym?'<div class="evbig evlogo">'+logoSvg(ASSETS[IDX[e.sym]])+(e.kind==='boom'?'<span class="evbadge">🚀</span>':'')+'</div>':'<div class="evbig">'+e.icon+'</div>')+'<div class="evtag">'+(e.kind==='crash'?'EILMELDUNG':e.kind==='boom'?'SENSATION':'BÖRSEN-NEWS')+' · Tag '+e.d+(age>0?' (vor '+agoStr(age*DAY_MS)+')':'')+'</div><h2>'+esc(e.title)+'</h2><p>'+esc(e.text)+'</p>'+
    '<div class="evlist">'+eff.slice(0,6).map(effChip).join('')+(eff.length>6?'<div class="sub" style="text-align:center;margin-top:6px">… und '+(eff.length-6)+' weitere</div>':'')+'</div>'+
    (e.boom?'<div class="hint" style="margin:10px 0 0">💡 Booms fallen meist innerhalb von '+(e.boom.dur+1)+' Spieltagen (≈ '+((e.boom.dur+1)*5)+' Minuten) zurück. Wer verkaufen will, sollte schnell sein!</div>':'')+
    '<div class="row mt" style="gap:8px"><button class="btn sp" id="evok">'+(EVQ.length?'Weiter ('+EVQ.length+')':'OK')+'</button><button class="btn pri sp" id="evgo">'+(e.boom?'Zur Aktie':'Zum Markt')+'</button></div></div>';
@@ -1268,7 +1378,7 @@ function evSummary(all){
   const big=e=>e.kind==='crash'||e.kind==='boom'?2:e.kind==='up'||e.kind==='down'?1:0;all=all.slice().sort((x,y)=>big(y)-big(x)||y.d-x.d);
   const box=document.createElement('div');box.id='evpop';box.className='evpop good2';
   box.innerHTML='<div class="evcard"><div class="evbig">📰</div><div class="evtag">WÄHREND DU WEG WARST</div><h2>'+all.length+' Börsen-Nachrichten</h2>'+
-   '<div class="evlist">'+all.slice(0,8).map(e=>'<div class="evr" data-ev="'+e.d+'"><span class="evi">'+e.icon+'</span><span class="sp"><b>'+esc(e.title)+'</b><br><span class="sub">Tag '+e.d+'</span></span></div>').join('')+'</div>'+
+   '<div class="evlist">'+all.slice(0,8).map(e=>'<div class="evr" data-ev="'+e.d+'">'+(e.sym?logo(ASSETS[IDX[e.sym]]):'<span class="evi">'+e.icon+'</span>')+'<span class="sp"><b>'+esc(e.title)+'</b><br><span class="sub">Tag '+e.d+'</span></span></div>').join('')+'</div>'+
    '<div class="row mt" style="gap:8px"><button class="btn sp" id="evok">OK</button><button class="btn pri sp" id="evgo">Alle Nachrichten</button></div></div>';
   document.body.appendChild(box);
   $('#evok').onclick=()=>box.remove();$('#evgo').onclick=()=>{box.remove();go('markt');setTimeout(()=>{const n=$('#news');if(n)n.scrollIntoView({behavior:'smooth'});},100);};
@@ -1285,7 +1395,7 @@ function checkEvents(initial){
 }
 function newsHtml(list,withEff){
   if(!list.length)return'<div class="empty"><div class="e">📰</div>Noch keine Nachrichten.</div>';
-  return'<div class="list">'+list.map(e=>{const eff=effList(e);return'<div class="li" data-ev="'+e.d+'"><div class="av">'+e.icon+'</div><div class="sp"><div class="nm" style="white-space:normal">'+esc(e.title)+'</div><div class="sub">Tag '+e.d+' · '+esc(e.text)+'</div></div>'+(withEff&&eff[0]?'<b class="'+(eff[0].f>=0?'up':'down')+'">'+(eff[0].boom?'×'+fmtN(eff[0].f+1,1):fmtP(eff[0].f))+'</b>':'')+'</div>';}).join('')+'</div>';
+  return'<div class="list">'+list.map(e=>{const eff=effList(e);return'<div class="li" data-ev="'+e.d+'">'+(e.sym?logo(ASSETS[IDX[e.sym]]):'<div class="av">'+e.icon+'</div>')+'<div class="sp"><div class="nm" style="white-space:normal">'+esc(e.title)+'</div><div class="sub">Tag '+e.d+' · '+esc(e.text)+'</div></div>'+(withEff&&eff[0]?'<b class="'+(eff[0].f>=0?'up':'down')+'">'+(eff[0].boom?'×'+fmtN(eff[0].f+1,1):fmtP(eff[0].f))+'</b>':'')+'</div>';}).join('')+'</div>';
 }
 
 /* ================================================================ Profil */
@@ -1435,7 +1545,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&S.mode==='
 
 
 /* ================================================================ Updates (ohne Neuinstallation) */
-const VERSION='2026-11-27.3';
+const VERSION='2026-11-27.5';
 let updAsked=false;
 async function remoteVersion(){
   try{const r=await fetch('index.html',{cache:'no-store'});if(!r.ok)return null;const tx=await r.text();const m=tx.match(/const VERSION='([^']+)'/);return m?m[1]:null;}catch(_){return null;}
@@ -1480,7 +1590,7 @@ async function boot(){
     else renderWelcome();
   }
 }
-window.__kh={S,eventsOn,boomOff,get ST(){return ST;},priceAt,worth,worthHistory,parsePairs,check,ASSETS,dayOf,closeP};
+window.__kh={S,eventsOn,boomOff,logoSvg,get ST(){return ST;},priceAt,worth,worthHistory,parsePairs,check,ASSETS,dayOf,closeP};
 boot();
 })();
 </script>
