@@ -395,9 +395,9 @@ function save(){
   if(S.mode==='local'){const P=localProfiles();P[S.uid]={name:ST.name,state:ST};if(!store.set(LP,P))toast('Speichern im Browser nicht möglich – Fortschritt geht beim Schließen verloren.','err');}
   else{clearTimeout(saveTimer);saveTimer=setTimeout(saveRemote,1200);}
 }
-function publicEntry(){
-  const hold={};for(const s in ST.holdings)hold[s]=ST.holdings[s].qty;
-  return{name:ST.name,cash:Math.max(0,Math.round(ST.cash*100)/100),hold,savBal:ST.sav.bal,savDay:ST.sav.day,worth:Math.round(worth(ST)*100)/100};
+function publicEntry(st){st=st||ST;
+  const hold={};for(const s in st.holdings)hold[s]=st.holdings[s].qty;
+  return{name:st.name,cash:Math.max(0,Math.round(st.cash*100)/100),hold,savBal:st.sav.bal,savDay:st.sav.day,worth:Math.round(worth(st)*100)/100};
 }
 
 /* ================================================================ Firebase (optional, für Online-Konten & weltweite Rangliste) */
@@ -439,10 +439,11 @@ async function loadRemote(user){
 }
 async function saveRemote(forceUid){
   const id=forceUid||S.uid;if(!FB.ok||!id||!ST)return;
+  clearTimeout(saveTimer);
+  const st=ST,plain=JSON.parse(JSON.stringify(st)),pub=publicEntry(st);
   try{
-    const plain=JSON.parse(JSON.stringify(ST));
-    await FB.fs.setDoc(FB.fs.doc(FB.db,'users',id),{name:ST.name,state:plain,updatedAt:FB.fs.serverTimestamp()});
-    await FB.fs.setDoc(FB.fs.doc(FB.db,'leaderboard',id),Object.assign(publicEntry(),{updatedAt:FB.fs.serverTimestamp()}));
+    await FB.fs.setDoc(FB.fs.doc(FB.db,'users',id),{name:st.name,state:plain,updatedAt:FB.fs.serverTimestamp()});
+    await FB.fs.setDoc(FB.fs.doc(FB.db,'leaderboard',id),Object.assign(pub,{updatedAt:FB.fs.serverTimestamp()}));
   }catch(e){console.warn(e);toast('Online-Speichern fehlgeschlagen: '+fbErr(e),'err');}
 }
 async function fetchRanking(){
@@ -1240,7 +1241,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&S.mode==='
 
 
 /* ================================================================ Updates (ohne Neuinstallation) */
-const VERSION='2026-11-26.1';
+const VERSION='2026-11-27.1';
 let updAsked=false;
 async function remoteVersion(){
   try{const r=await fetch('index.html',{cache:'no-store'});if(!r.ok)return null;const tx=await r.text();const m=tx.match(/const VERSION='([^']+)'/);return m?m[1]:null;}catch(_){return null;}
