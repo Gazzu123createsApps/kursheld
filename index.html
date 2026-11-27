@@ -738,6 +738,16 @@ function doSav(dep){
 /* ================================================================ Vokabeln */
 function todayKey(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
 function earnToday(){return ST.earn.date===todayKey()?ST.earn.sum:0;}
+function letters(x){return norm(x).replace(/[^\p{L}]/gu,'');}
+// Gibt einen Grund zurück, warum ein Vokabelpaar kein Geld bringen darf – oder '' wenn alles ok ist.
+function vocabProblem(a,b){
+  const la=letters(a),lb=letters(b);
+  if(la.length<2||lb.length<2)return'zu kurz (mindestens 2 Buchstaben auf beiden Seiten)';
+  if(la===lb||lev(la,lb)<=1)return'Wort und Übersetzung sind (fast) gleich';
+  if(/^(.)\1+$/.test(la)||/^(.)\1+$/.test(lb))return'kein echtes Wort';
+  return'';
+}
+const pairKey=it=>[letters(it.a),letters(it.b)].sort().join('|');
 function giveReward(wid){
   const e=ST.earn;if(e.date!==todayKey()){e.date=todayKey();e.sum=0;e.words={};}
   if(e.sum>=DAILY_CAP)return{amt:0,why:'cap'};
@@ -832,6 +842,10 @@ async function handlePhoto(file){
 function saveList(){
   syncEdit();const rows=EDIT.rows.map(r=>({a:String(r.a||'').trim(),b:String(r.b||'').trim(),id:r.id,ok:r.ok||0,bad:r.bad||0})).filter(r=>r.a&&r.b);
   if(!rows.length)return toast('Die Liste braucht mindestens eine Vokabel.','err');
+  const bad=rows.map(r=>({r,p:vocabProblem(r.a,r.b)})).filter(x=>x.p);
+  if(bad.length)return toast('„'+bad[0].r.a+' = '+bad[0].r.b+'“ geht nicht: '+bad[0].p+'.'+(bad.length>1?' ('+bad.length+' Zeilen betroffen)':''),'err',6000);
+  const seen=new Set(),dup=[];rows.forEach(r=>{const k=pairKey(r);if(seen.has(k))dup.push(r);seen.add(k);});
+  if(dup.length)return toast('„'+dup[0].a+' = '+dup[0].b+'“ steht doppelt in der Liste. Bitte jede Vokabel nur einmal.','err',6000);
   rows.forEach(r=>{if(!r.id)r.id=uid();});
   const name=(EDIT.name||'').trim()||'Vokabelliste';
   if(EDIT.id){const l=ST.vocab.lists.find(x=>x.id===EDIT.id);if(l){l.name=name;l.items=rows;}}
@@ -841,8 +855,10 @@ function saveList(){
 /* --- Abfrage --- */
 let Q=null;
 function startQuiz(listId){
-  const items=[];ST.vocab.lists.forEach(l=>{if(listId==='all'||l.id===listId)l.items.forEach(it=>items.push({it,list:l.name}));});
-  if(!items.length)return toast('Keine Vokabeln gefunden.','err');
+  const items=[],seen=new Set();let skipped=0;
+  ST.vocab.lists.forEach(l=>{if(listId==='all'||l.id===listId)l.items.forEach(it=>{const k=pairKey(it);if(vocabProblem(it.a,it.b)||seen.has(k)){skipped++;return;}seen.add(k);items.push({it,list:l.name});});});
+  if(!items.length)return toast(skipped?'In dieser Liste ist keine gültige Vokabel. Bearbeite sie bitte.':'Keine Vokabeln gefunden.','err',5000);
+  if(skipped)toast(skipped+' doppelte oder ungültige Vokabel(n) werden übersprungen.','',4500);
   Q={listId,items,n:0,total:Math.min(10,Math.max(5,items.length)),right:0,earned:0,dir:S.ui.qdir||'mix',cur:null,answered:false,fb:null};
   nextQ();S.view='abfrage';try{history.replaceState(null,'','#abfrage');}catch(_){}setNav();renderView();
 }
@@ -867,8 +883,8 @@ function answerQ(skip){
   if(!Q||Q.answered)return;const inp=$('#qin');const val=skip?'':(inp?inp.value:'');
   if(!skip&&!val.trim())return;
   const res=skip?0:check(val,Q.cur.want),it=Q.cur.x.it;Q.answered=true;Q.last=val;Q.n++;
-  if(res>0){it.ok=(it.ok||0)+1;Q.right++;const rw=giveReward(it.id);Q.earned+=rw.amt;
-    Q.fb={ok:true,txt:(res===2?'Richtig! ':'Fast richtig (kleiner Tippfehler). ')+(rw.amt?'+'+fmtE(rw.amt,0):rw.why==='cap'?'Tageslimit von 2.000 € erreicht.':'Diese Vokabel zahlt heute nichts mehr – nimm eine andere Liste dazu.')+(res===1?' Richtig geschrieben: '+Q.cur.want:''),amt:rw.amt};}
+  if(res>0){it.ok=(it.ok||0)+1;Q.right++;const prob=vocabProblem(it.a,it.b),rw=prob?{amt:0,why:'invalid',prob}:giveReward('p:'+pairKey(it));Q.earned+=rw.amt;
+    Q.fb={ok:true,txt:(res===2?'Richtig! ':'Fast richtig (kleiner Tippfehler). ')+(rw.amt?'+'+fmtE(rw.amt,0):rw.why==='cap'?'Tageslimit von 2.000 € erreicht.':rw.why==='invalid'?'Kein Geld: '+rw.prob+'.':'Diese Vokabel zahlt heute nichts mehr – nimm eine andere Liste dazu.')+(res===1?' Richtig geschrieben: '+Q.cur.want:''),amt:rw.amt};}
   else{it.bad=(it.bad||0)+1;Q.fb={ok:false,txt:(skip?'Übersprungen. ':'Leider falsch. ')+'Richtig ist: '+Q.cur.want};}
   save();renderView();
   if(Q.fb.amt){const b=$('#qbox');if(b){const r=b.getBoundingClientRect();coin(r.left+r.width/2,r.top+40,'+'+fmtE(Q.fb.amt,0));}}
@@ -1241,7 +1257,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&S.mode==='
 
 
 /* ================================================================ Updates (ohne Neuinstallation) */
-const VERSION='2026-11-27.1';
+const VERSION='2026-11-27.2';
 let updAsked=false;
 async function remoteVersion(){
   try{const r=await fetch('index.html',{cache:'no-store'});if(!r.ok)return null;const tx=await r.text();const m=tx.match(/const VERSION='([^']+)'/);return m?m[1]:null;}catch(_){return null;}
